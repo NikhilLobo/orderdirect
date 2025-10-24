@@ -112,12 +112,12 @@ const Signup = () => {
         password: formData.password,
       });
 
-      // Success! Redirect to a success page or dashboard
-      alert(`Success! Your restaurant is ready at ${result.subdomain}.orderdirect.co.uk`);
+      // Success! Redirect to the restaurant's page
+      const restaurantUrl = `https://orderdirect-eight.vercel.app/${result.subdomain}`;
+      alert(`Success! Your restaurant is ready at ${restaurantUrl}`);
 
-      // TODO: Redirect to restaurant dashboard when built
-      // For now, redirect to home
-      navigate('/');
+      // Redirect to the restaurant's storefront
+      navigate(`/${result.subdomain}`);
     } catch (error: any) {
       console.error('Signup error:', error);
       setErrors({
@@ -175,9 +175,9 @@ const Signup = () => {
               {/* Subdomain */}
               <div>
                 <label htmlFor="subdomain" className="block text-sm font-medium mb-2">
-                  Your Storefront URL *
+                  Choose Your URL *
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="space-y-2">
                   <input
                     type="text"
                     id="subdomain"
@@ -188,21 +188,23 @@ const Signup = () => {
                       setSubdomainAvailable(null);
                     }}
                     onBlur={handleCheckSubdomain}
-                    className="flex-1 px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder="yourrestaurant"
                   />
-                  <span className="text-muted-foreground whitespace-nowrap">
-                    .orderdirect.co.uk
-                  </span>
+                  {formData.subdomain && (
+                    <p className="text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded">
+                      Your store will be at: <span className="font-medium text-foreground">orderdirect-eight.vercel.app/{formData.subdomain}</span>
+                    </p>
+                  )}
                 </div>
                 {isCheckingSubdomain && (
                   <p className="text-muted-foreground text-sm mt-1">Checking availability...</p>
                 )}
                 {!isCheckingSubdomain && subdomainAvailable === true && (
-                  <p className="text-green-600 text-sm mt-1">✓ Subdomain is available!</p>
+                  <p className="text-green-600 text-sm mt-1">✓ Available!</p>
                 )}
                 {!isCheckingSubdomain && subdomainAvailable === false && (
-                  <p className="text-red-500 text-sm mt-1">✗ Subdomain is not available</p>
+                  <p className="text-red-500 text-sm mt-1">✗ This URL is already taken</p>
                 )}
                 {errors.subdomain && (
                   <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>
