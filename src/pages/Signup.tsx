@@ -193,7 +193,7 @@ const Signup = () => {
               {/* Subdomain - Auto-generated from restaurant name */}
               <div>
                 <label htmlFor="subdomain" className="block text-sm font-medium mb-2">
-                  Your Restaurant URL *
+                  Enter Restaurant Name *
                 </label>
                 <div className="flex items-stretch border border-input rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-ring">
                   <span className="flex items-center pl-3 pr-0 py-3 bg-gray-100 text-gray-400 text-sm font-mono whitespace-nowrap">
@@ -209,7 +209,7 @@ const Signup = () => {
                       setSubdomainAvailable(null);
                     }}
                     className="flex-1 pl-0 pr-4 py-3 focus:outline-none font-mono bg-white"
-                    placeholder="yourrestaurant"
+                    placeholder="restaurant_name"
                   />
                 </div>
                 {subdomainAvailable === true && formData.subdomain && (
