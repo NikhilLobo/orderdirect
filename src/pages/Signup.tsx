@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { checkSubdomainAvailability, signupRestaurant } from '../services/restaurantService';
 
 const Signup = () => {
@@ -319,18 +319,22 @@ const Signup = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative w-full py-4 bg-gradient-to-r from-primary to-[#a01822] text-white rounded-lg font-bold text-lg overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
               >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
+                {/* Animated shine effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
 
-              {/* Login Link */}
-              <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link to="/login" className="text-primary font-medium hover:underline">
-                  Sign in
-                </Link>
-              </p>
+                {/* Button text with loading animation */}
+                <span className="relative flex items-center justify-center gap-2">
+                  {isLoading && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {isLoading ? 'Creating Your Account...' : '🚀 Create Account'}
+                </span>
+              </button>
             </form>
           </div>
 
