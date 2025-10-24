@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* #f4f4f2 - Light background */
+    --background: 60 7% 96%;
+    --foreground: 355 76% 40%;
+
+    /* Card colors */
+    --card: 0 0% 100%;
+    --card-foreground: 355 76% 40%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 355 76% 40%;
+
+    /* #cb202d - Primary red */
+    --primary: 355 76% 46%;
+    --primary-foreground: 60 7% 96%;
+
+    /* Secondary using lighter red */
+    --secondary: 355 76% 95%;
+    --secondary-foreground: 355 76% 40%;
+
+    /* Muted */
+    --muted: 60 7% 90%;
+    --muted-foreground: 355 30% 35%;
+
+    /* Accent - darker red */
+    --accent: 355 76% 38%;
+    --accent-foreground: 60 7% 96%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 60 7% 96%;
+
+    /* Borders and inputs */
+    --border: 60 7% 85%;
+    --input: 60 7% 85%;
+    --ring: 355 76% 46%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode - inverted */
+    --background: 355 20% 10%;
+    --foreground: 60 7% 96%;
+
+    --card: 355 20% 12%;
+    --card-foreground: 60 7% 96%;
+
+    --popover: 355 20% 12%;
+    --popover-foreground: 60 7% 96%;
+
+    /* Primary stays red */
+    --primary: 355 76% 46%;
+    --primary-foreground: 60 7% 96%;
+
+    --secondary: 355 20% 18%;
+    --secondary-foreground: 60 7% 96%;
+
+    --muted: 355 20% 18%;
+    --muted-foreground: 60 7% 70%;
+
+    --accent: 355 76% 50%;
+    --accent-foreground: 60 7% 96%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 60 7% 96%;
+
+    --border: 355 20% 18%;
+    --input: 355 20% 18%;
+    --ring: 355 76% 60%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
