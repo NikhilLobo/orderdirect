@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { checkSubdomainAvailability, signupRestaurant } from '../services/restaurantService';
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     restaurantName: '',
     ownerName: '',
@@ -14,6 +16,8 @@ const Signup = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,12 +38,21 @@ const Signup = () => {
     }
   };
 
-  const checkSubdomainAvailability = async () => {
-    // TODO: Implement Firebase check
-    // For now, simulate availability check
-    const reserved = ['admin', 'dashboard', 'www', 'api', 'app'];
-    const isAvailable = !reserved.includes(formData.subdomain) && formData.subdomain.length >= 3;
-    setSubdomainAvailable(isAvailable);
+  const handleCheckSubdomain = async () => {
+    if (!formData.subdomain || formData.subdomain.length < 3) {
+      return;
+    }
+
+    setIsCheckingSubdomain(true);
+    try {
+      const isAvailable = await checkSubdomainAvailability(formData.subdomain);
+      setSubdomainAvailable(isAvailable);
+    } catch (error) {
+      console.error('Error checking subdomain:', error);
+      setSubdomainAvailable(false);
+    } finally {
+      setIsCheckingSubdomain(false);
+    }
   };
 
   const validateForm = () => {
@@ -86,9 +99,36 @@ const Signup = () => {
       return;
     }
 
-    // TODO: Implement Firebase Auth + Firestore restaurant creation
-    console.log('Form submitted:', formData);
-    alert('Sign up functionality will be implemented with Firebase');
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await signupRestaurant({
+        restaurantName: formData.restaurantName,
+        ownerName: formData.ownerName,
+        email: formData.email,
+        phone: formData.phone,
+        subdomain: formData.subdomain,
+        password: formData.password,
+      });
+
+      // Success! Redirect to a success page or dashboard
+      alert(`Success! Your restaurant is ready at ${result.subdomain}.orderdirect.co.uk`);
+
+      // TODO: Redirect to restaurant dashboard when built
+      // For now, redirect to home
+      navigate('/');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      setErrors({
+        general: error.message || 'Failed to create account. Please try again.',
+      });
+
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -105,6 +145,13 @@ const Signup = () => {
 
           {/* Form Card */}
           <div className="bg-card rounded-xl shadow-lg p-8">
+            {/* General Error Message */}
+            {errors.general && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm font-medium">{errors.general}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Restaurant Name */}
               <div>
@@ -136,8 +183,11 @@ const Signup = () => {
                     id="subdomain"
                     name="subdomain"
                     value={formData.subdomain}
-                    onChange={handleChange}
-                    onBlur={checkSubdomainAvailability}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setSubdomainAvailable(null);
+                    }}
+                    onBlur={handleCheckSubdomain}
                     className="flex-1 px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder="yourrestaurant"
                   />
@@ -145,10 +195,13 @@ const Signup = () => {
                     .orderdirect.co.uk
                   </span>
                 </div>
-                {subdomainAvailable === true && (
+                {isCheckingSubdomain && (
+                  <p className="text-muted-foreground text-sm mt-1">Checking availability...</p>
+                )}
+                {!isCheckingSubdomain && subdomainAvailable === true && (
                   <p className="text-green-600 text-sm mt-1">✓ Subdomain is available!</p>
                 )}
-                {subdomainAvailable === false && (
+                {!isCheckingSubdomain && subdomainAvailable === false && (
                   <p className="text-red-500 text-sm mt-1">✗ Subdomain is not available</p>
                 )}
                 {errors.subdomain && (
@@ -265,9 +318,10 @@ const Signup = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-4 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-bold text-lg"
+                disabled={isLoading}
+                className="w-full py-4 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Account
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </button>
 
               {/* Login Link */}
