@@ -6,6 +6,9 @@ import Home from './pages/Home';
 import Restaurants from './pages/Restaurants';
 import Cart from './pages/Cart';
 import Signup from './pages/Signup';
+import StorefrontLayout from './pages/store/StorefrontLayout';
+import Storefront from './pages/store/Storefront';
+import AdminDashboard from './pages/store/AdminDashboard';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -26,23 +29,43 @@ function ScrollToHash() {
 }
 
 function App() {
+  const location = useLocation();
+  const isStorePage = location.pathname.startsWith('/store/');
+
   return (
-    <Router>
+    <>
       <ScrollToHash />
       <div className="flex flex-col min-h-screen">
-        <Header />
+        {/* Show Header/Footer only on main site, not on store pages */}
+        {!isStorePage && <Header />}
         <main className="flex-1">
           <Routes>
+            {/* Main Site Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/restaurants" element={<Restaurants />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/signup" element={<Signup />} />
+
+            {/* Store Routes (Restaurant Subdomains) */}
+            <Route path="/store/:subdomain" element={<StorefrontLayout />}>
+              <Route index element={<Storefront />} />
+              <Route path="admin" element={<AdminDashboard />} />
+            </Route>
           </Routes>
         </main>
-        <Footer />
+        {!isStorePage && <Footer />}
       </div>
+    </>
+  );
+}
+
+// Wrap App with Router
+function AppWithRouter() {
+  return (
+    <Router>
+      <App />
     </Router>
   );
 }
 
-export default App;
+export default AppWithRouter;

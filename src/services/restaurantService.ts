@@ -104,9 +104,16 @@ export const signupRestaurant = async (data: RestaurantSignupData) => {
  */
 export const getRestaurantBySubdomain = async (subdomain: string) => {
   try {
+    console.log('[restaurantService] Querying for subdomain:', subdomain.toLowerCase());
     const restaurantsRef = collection(db, 'restaurants');
     const q = query(restaurantsRef, where('subdomain', '==', subdomain.toLowerCase()));
     const querySnapshot = await getDocs(q);
+
+    console.log('[restaurantService] Query results:', {
+      empty: querySnapshot.empty,
+      size: querySnapshot.size,
+      docs: querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))
+    });
 
     if (querySnapshot.empty) {
       return null;
@@ -118,7 +125,7 @@ export const getRestaurantBySubdomain = async (subdomain: string) => {
       ...restaurantDoc.data(),
     };
   } catch (error) {
-    console.error('Error fetching restaurant:', error);
+    console.error('[restaurantService] Error fetching restaurant:', error);
     throw new Error('Failed to fetch restaurant data');
   }
 };
