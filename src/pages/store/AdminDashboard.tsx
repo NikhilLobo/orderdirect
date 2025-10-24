@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { login } from '../../services/authService';
 import type { Restaurant } from '../../types/restaurant';
+import MenuManagement from '../../components/admin/MenuManagement';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -90,7 +91,7 @@ const AdminDashboard = () => {
 
             <div className="mt-6 text-center">
               <a
-                href={`/store/${restaurant.subdomain}`}
+                href={`/${restaurant.subdomain}`}
                 className="text-sm text-primary hover:underline"
               >
                 ← Back to Storefront
@@ -138,32 +139,8 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Coming Soon */}
-        <div className="bg-card rounded-xl shadow-lg p-12 text-center">
-          <div className="text-6xl mb-6">🚀</div>
-          <h2 className="text-3xl font-bold mb-4">Dashboard Coming Soon!</h2>
-          <p className="text-muted-foreground mb-8">
-            We're building your restaurant management dashboard. Soon you'll be able to:
-          </p>
-          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto text-left">
-            <div className="flex items-start gap-3">
-              <span className="text-green-600 text-2xl">✓</span>
-              <span>Create and manage your menu</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-green-600 text-2xl">✓</span>
-              <span>Receive real-time orders</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-green-600 text-2xl">✓</span>
-              <span>Track revenue and analytics</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-green-600 text-2xl">✓</span>
-              <span>Manage order fulfillment</span>
-            </div>
-          </div>
-        </div>
+        {/* Menu Management */}
+        <MenuManagement restaurantId={restaurant.id!} />
       </div>
     </div>
   );
