@@ -193,7 +193,7 @@ const Signup = () => {
               {/* Subdomain - Auto-generated from restaurant name */}
               <div>
                 <label htmlFor="subdomain" className="block text-sm font-medium mb-2">
-                  Enter Restaurant Name *
+                  Enter Restaurant Name for Subpath *
                 </label>
                 <div className="flex items-stretch border border-input rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-ring">
                   <span className="flex items-center pl-3 pr-0 py-3 bg-gray-100 text-gray-400 text-sm font-mono whitespace-nowrap">
