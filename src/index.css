@@ -4,15 +4,15 @@
   :root {
     /* #f4f4f2 - Light background */
     --background: 60 7% 96%;
-    --foreground: 222 17% 26%; /* Softer dark blue-gray for text */
+    --foreground: 355 76% 40%;
 
     /* Card colors */
     --card: 0 0% 100%;
-    --card-foreground: 222 17% 26%;
+    --card-foreground: 355 76% 40%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 17% 26%;
+    --popover-foreground: 355 76% 40%;
 
     /* #cb202d - Primary red */
     --primary: 355 76% 46%;
@@ -20,11 +20,11 @@
 
     /* Secondary using lighter red */
     --secondary: 355 76% 95%;
-    --secondary-foreground: 222 17% 26%;
+    --secondary-foreground: 355 76% 40%;
 
     /* Muted */
     --muted: 60 7% 90%;
-    --muted-foreground: 222 10% 45%; /* Softer muted text */
+    --muted-foreground: 355 30% 35%;
 
     /* Accent - darker red */
     --accent: 355 76% 38%;
