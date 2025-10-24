@@ -30,14 +30,17 @@ function ScrollToHash() {
 
 function App() {
   const location = useLocation();
-  const isRestaurantPage = location.pathname.startsWith('/restaurant/');
+
+  // List of main site routes (to show Header/Footer)
+  const mainSiteRoutes = ['/', '/restaurants', '/cart', '/signup'];
+  const isMainSite = mainSiteRoutes.includes(location.pathname);
 
   return (
     <>
       <ScrollToHash />
       <div className="flex flex-col min-h-screen">
-        {/* Show Header/Footer only on main site, not on restaurant pages */}
-        {!isRestaurantPage && <Header />}
+        {/* Show Header/Footer only on main site pages */}
+        {isMainSite && <Header />}
         <main className="flex-1">
           <Routes>
             {/* Main Site Routes */}
@@ -46,14 +49,14 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Restaurant Routes (Multi-tenant) */}
-            <Route path="/restaurant/:subdomain" element={<StorefrontLayout />}>
+            {/* Restaurant Routes (Multi-tenant) - Catch-all for any subdomain */}
+            <Route path="/:subdomain" element={<StorefrontLayout />}>
               <Route index element={<Storefront />} />
               <Route path="admin" element={<AdminDashboard />} />
             </Route>
           </Routes>
         </main>
-        {!isRestaurantPage && <Footer />}
+        {isMainSite && <Footer />}
       </div>
     </>
   );
