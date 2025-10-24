@@ -20,33 +20,55 @@ const Signup = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
 
-    // Auto-generate subdomain from restaurant name
-    if (name === 'restaurantName') {
-      const subdomain = value
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-        .substring(0, 20);
-      setFormData((prev) => ({ ...prev, subdomain }));
-      // Reset availability check when name changes
+    if (name === 'subdomain') {
+      // Only allow lowercase letters and numbers
+      const cleanValue = value.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+      setFormData((prev) => ({ ...prev, subdomain: cleanValue }));
+
+      // Reset availability check when subdomain changes
       setSubdomainAvailable(null);
 
       // Auto-check availability after user stops typing (debounce)
-      if (subdomain.length >= 3) {
+      if (cleanValue.length >= 3) {
         setTimeout(() => {
-          checkSubdomainAvailability(subdomain).then(isAvailable => {
+          checkSubdomainAvailability(cleanValue).then(isAvailable => {
             setSubdomainAvailable(isAvailable);
           }).catch(() => {
             setSubdomainAvailable(false);
           });
         }, 500);
       }
+    } else if (name === 'restaurantName') {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+
+      // Auto-suggest subdomain from restaurant name if subdomain is empty
+      if (!formData.subdomain) {
+        const suggestedSubdomain = value
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+          .substring(0, 20);
+        setFormData((prev) => ({ ...prev, subdomain: suggestedSubdomain }));
+        setSubdomainAvailable(null);
+
+        // Auto-check availability
+        if (suggestedSubdomain.length >= 3) {
+          setTimeout(() => {
+            checkSubdomainAvailability(suggestedSubdomain).then(isAvailable => {
+              setSubdomainAvailable(isAvailable);
+            }).catch(() => {
+              setSubdomainAvailable(false);
+            });
+          }, 500);
+        }
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -171,31 +193,24 @@ const Signup = () => {
               {/* Subdomain - Auto-generated from restaurant name */}
               <div>
                 <label htmlFor="subdomain" className="block text-sm font-medium mb-2">
-                  Your Restaurant URL
+                  Your Restaurant URL *
                 </label>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="subdomain"
-                      name="subdomain"
-                      value={formData.subdomain}
-                      readOnly
-                      disabled
-                      className="w-full px-4 py-3 border border-input rounded-lg bg-muted/50 text-muted-foreground cursor-not-allowed"
-                      placeholder="Generated from restaurant name"
-                    />
-                    <span className="absolute right-3 top-3 text-xs text-muted-foreground">
-                      Auto-generated
-                    </span>
-                  </div>
-                  {formData.subdomain && (
-                    <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded">
-                      <p className="text-sm text-blue-900">
-                        🔗 Your store will be at: <span className="font-semibold">orderdirect-eight.vercel.app/{formData.subdomain}</span>
-                      </p>
-                    </div>
-                  )}
+                <div className="flex items-stretch border border-input rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+                  <span className="flex items-center px-4 py-3 bg-muted text-muted-foreground text-sm whitespace-nowrap">
+                    orderdirect-eight.vercel.app/
+                  </span>
+                  <input
+                    type="text"
+                    id="subdomain"
+                    name="subdomain"
+                    value={formData.subdomain}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setSubdomainAvailable(null);
+                    }}
+                    className="flex-1 px-4 py-3 focus:outline-none"
+                    placeholder="yourrestaurant"
+                  />
                 </div>
                 {subdomainAvailable === true && formData.subdomain && (
                   <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
@@ -204,14 +219,14 @@ const Signup = () => {
                 )}
                 {subdomainAvailable === false && formData.subdomain && (
                   <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                    <span className="text-lg">✗</span> This URL is already taken. Please choose a different restaurant name.
+                    <span className="text-lg">✗</span> This URL is already taken. Please try a different name.
                   </p>
                 )}
                 {errors.subdomain && (
                   <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  💡 Your URL is automatically created from your restaurant name
+                  💡 Only lowercase letters and numbers allowed (auto-generated from restaurant name)
                 </p>
               </div>
 
