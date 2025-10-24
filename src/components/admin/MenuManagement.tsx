@@ -162,9 +162,10 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+            className="relative px-6 py-3 bg-gradient-to-r from-primary to-[#a01822] text-white rounded-lg font-bold overflow-hidden group transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
-            + Add Menu Item
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
+            <span className="relative">+ Add Menu Item</span>
           </button>
         )}
       </div>
@@ -307,9 +308,10 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
           <p className="text-muted-foreground mb-6">Start by adding your first menu item</p>
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+            className="relative px-8 py-4 bg-gradient-to-r from-primary to-[#a01822] text-white rounded-lg font-bold overflow-hidden group transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
-            + Add Menu Item
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
+            <span className="relative">+ Add Menu Item</span>
           </button>
         </div>
       ) : (
