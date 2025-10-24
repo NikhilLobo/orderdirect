@@ -3,6 +3,27 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   return (
     <div className="min-h-screen bg-background">
+      {/* Top Promotional Banner */}
+      <div className="relative bg-gradient-to-r from-primary via-[#a01822] to-primary text-white py-3 overflow-hidden group">
+        {/* Animated shine effect */}
+        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-10 group-hover:animate-shine"></span>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-center">
+            <span className="text-2xl">🎉</span>
+            <p className="text-sm md:text-base font-semibold">
+              <span className="font-bold">Launch Offer:</span> Get your first month at <span className="bg-white text-primary px-2 py-0.5 rounded font-bold">50% OFF</span> — Only £24.50!
+            </p>
+            <Link
+              to="/signup"
+              className="text-xs md:text-sm bg-white text-primary px-4 py-1.5 rounded-full font-bold hover:bg-gray-100 transition-all hover:scale-105"
+            >
+              Claim Now →
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground py-20 overflow-hidden">
         {/* Background Pattern */}
@@ -37,6 +58,31 @@ const Home = () => {
               <p className="mt-6 text-sm opacity-80">
                 ✓ Simple setup • ✓ No long-term contracts • ✓ Cancel anytime
               </p>
+
+              {/* Stats Banner */}
+              <div className="mt-10 grid grid-cols-3 gap-4 max-w-lg mx-auto md:mx-0">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center overflow-hidden group hover:bg-white/20 transition-all">
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-10 group-hover:animate-shine"></span>
+                  <div className="relative">
+                    <p className="text-3xl font-bold">0%</p>
+                    <p className="text-xs opacity-80">Commission</p>
+                  </div>
+                </div>
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center overflow-hidden group hover:bg-white/20 transition-all">
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-10 group-hover:animate-shine"></span>
+                  <div className="relative">
+                    <p className="text-3xl font-bold">£49</p>
+                    <p className="text-xs opacity-80">Per Month</p>
+                  </div>
+                </div>
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center overflow-hidden group hover:bg-white/20 transition-all">
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-10 group-hover:animate-shine"></span>
+                  <div className="relative">
+                    <p className="text-3xl font-bold">100%</p>
+                    <p className="text-xs opacity-80">Yours</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Right Image */}
