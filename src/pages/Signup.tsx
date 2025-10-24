@@ -226,7 +226,7 @@ const Signup = () => {
                   <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  💡 Only lowercase letters, numbers, no spaces (auto-generated from restaurant name)
+                  💡 Only lowercase letters, numbers, no spaces
                 </p>
               </div>
 
