@@ -131,13 +131,19 @@ const Home = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-card border rounded-lg p-4">
-                    <p className="text-2xl font-bold text-primary">100%</p>
-                    <p className="text-sm text-muted-foreground">Revenue Kept</p>
+                  <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-4 overflow-hidden group hover:shadow-lg transition-all">
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
+                    <div className="relative">
+                      <p className="text-2xl font-bold text-primary">100%</p>
+                      <p className="text-sm text-muted-foreground">Revenue Kept</p>
+                    </div>
                   </div>
-                  <div className="bg-card border rounded-lg p-4">
-                    <p className="text-2xl font-bold text-primary">0%</p>
-                    <p className="text-sm text-muted-foreground">Commission</p>
+                  <div className="relative bg-gradient-to-br from-[#a01822]/5 to-[#a01822]/10 border-2 border-[#a01822]/20 rounded-lg p-4 overflow-hidden group hover:shadow-lg transition-all">
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
+                    <div className="relative">
+                      <p className="text-2xl font-bold text-primary">0%</p>
+                      <p className="text-sm text-muted-foreground">Commission</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -147,8 +153,11 @@ const Home = () => {
       </section>
 
       {/* Visual Showcase */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-primary/5 via-white to-primary/10 relative overflow-hidden">
+        {/* Decorative gradient orbs */}
+        <div className="absolute top-20 -left-20 w-72 h-72 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 -right-20 w-96 h-96 bg-gradient-to-tl from-[#a01822]/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-16 items-center mb-20">
               <div>
@@ -277,8 +286,11 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+      <section id="how-it-works" className="py-20 bg-gradient-to-b from-white via-primary/5 to-white relative overflow-hidden">
+        {/* Decorative gradient shapes */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-tl from-[#a01822]/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Get Started in Minutes
@@ -329,10 +341,14 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto relative">
+            {/* Gradient glow behind card */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-[#a01822]/20 to-primary/30 rounded-3xl blur-2xl scale-105"></div>
+
             <div className="bg-white border-4 border-primary rounded-3xl p-10 shadow-2xl relative overflow-hidden">
               {/* Decorative corner */}
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#a01822]/5 rounded-full blur-2xl"></div>
 
               <div className="text-center mb-8 relative">
                 <div className="inline-block px-4 py-1 bg-primary text-primary-foreground rounded-full text-xs font-bold mb-6">
