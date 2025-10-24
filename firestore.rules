@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Restaurants collection
+    match /restaurants/{restaurantId} {
+      allow read: if true; // Public read
+      allow write: if request.auth != null; // Authenticated users only
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Menu items collection
+    match /menuItems/{itemId} {
+      allow read: if true; // Public read for customers
+      allow create: if request.auth != null; // Authenticated users can create
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == get(/databases/$(database)/documents/restaurants/$(resource.data.restaurantId)).data.ownerId;
+    }
+    
+    // Orders collection (for future)
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

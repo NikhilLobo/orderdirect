@@ -36,10 +36,12 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
   const loadMenuItems = async () => {
     try {
       setIsLoading(true);
+      setError(''); // Clear previous errors
       const items = await getMenuItemsByRestaurant(restaurantId);
       setMenuItems(items);
-    } catch (err) {
-      setError('Failed to load menu items');
+    } catch (err: any) {
+      console.error('Error loading menu items:', err);
+      setError(`Failed to load menu items: ${err.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
