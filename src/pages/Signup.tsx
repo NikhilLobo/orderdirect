@@ -17,7 +17,6 @@ const Signup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,31 +28,28 @@ const Signup = () => {
     }
 
     // Auto-generate subdomain from restaurant name
-    if (name === 'restaurantName' && !formData.subdomain) {
+    if (name === 'restaurantName') {
       const subdomain = value
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '')
         .substring(0, 20);
       setFormData((prev) => ({ ...prev, subdomain }));
+      // Reset availability check when name changes
+      setSubdomainAvailable(null);
+
+      // Auto-check availability after user stops typing (debounce)
+      if (subdomain.length >= 3) {
+        setTimeout(() => {
+          checkSubdomainAvailability(subdomain).then(isAvailable => {
+            setSubdomainAvailable(isAvailable);
+          }).catch(() => {
+            setSubdomainAvailable(false);
+          });
+        }, 500);
+      }
     }
   };
 
-  const handleCheckSubdomain = async () => {
-    if (!formData.subdomain || formData.subdomain.length < 3) {
-      return;
-    }
-
-    setIsCheckingSubdomain(true);
-    try {
-      const isAvailable = await checkSubdomainAvailability(formData.subdomain);
-      setSubdomainAvailable(isAvailable);
-    } catch (error) {
-      console.error('Error checking subdomain:', error);
-      setSubdomainAvailable(false);
-    } finally {
-      setIsCheckingSubdomain(false);
-    }
-  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -172,43 +168,51 @@ const Signup = () => {
                 )}
               </div>
 
-              {/* Subdomain */}
+              {/* Subdomain - Auto-generated from restaurant name */}
               <div>
                 <label htmlFor="subdomain" className="block text-sm font-medium mb-2">
-                  Choose Your URL *
+                  Your Restaurant URL
                 </label>
                 <div className="space-y-2">
-                  <input
-                    type="text"
-                    id="subdomain"
-                    name="subdomain"
-                    value={formData.subdomain}
-                    onChange={(e) => {
-                      handleChange(e);
-                      setSubdomainAvailable(null);
-                    }}
-                    onBlur={handleCheckSubdomain}
-                    className="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="yourrestaurant"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="subdomain"
+                      name="subdomain"
+                      value={formData.subdomain}
+                      readOnly
+                      disabled
+                      className="w-full px-4 py-3 border border-input rounded-lg bg-muted/50 text-muted-foreground cursor-not-allowed"
+                      placeholder="Generated from restaurant name"
+                    />
+                    <span className="absolute right-3 top-3 text-xs text-muted-foreground">
+                      Auto-generated
+                    </span>
+                  </div>
                   {formData.subdomain && (
-                    <p className="text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded">
-                      Your store will be at: <span className="font-medium text-foreground">orderdirect-eight.vercel.app/{formData.subdomain}</span>
-                    </p>
+                    <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded">
+                      <p className="text-sm text-blue-900">
+                        🔗 Your store will be at: <span className="font-semibold">orderdirect-eight.vercel.app/{formData.subdomain}</span>
+                      </p>
+                    </div>
                   )}
                 </div>
-                {isCheckingSubdomain && (
-                  <p className="text-muted-foreground text-sm mt-1">Checking availability...</p>
+                {subdomainAvailable === true && formData.subdomain && (
+                  <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
+                    <span className="text-lg">✓</span> This URL is available!
+                  </p>
                 )}
-                {!isCheckingSubdomain && subdomainAvailable === true && (
-                  <p className="text-green-600 text-sm mt-1">✓ Available!</p>
-                )}
-                {!isCheckingSubdomain && subdomainAvailable === false && (
-                  <p className="text-red-500 text-sm mt-1">✗ This URL is already taken</p>
+                {subdomainAvailable === false && formData.subdomain && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <span className="text-lg">✗</span> This URL is already taken. Please choose a different restaurant name.
+                  </p>
                 )}
                 {errors.subdomain && (
                   <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  💡 Your URL is automatically created from your restaurant name
+                </p>
               </div>
 
               {/* Owner Name */}
