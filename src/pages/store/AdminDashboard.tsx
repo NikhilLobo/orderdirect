@@ -1,15 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { login } from '../../services/authService';
+import { login, logout } from '../../services/authService';
+import { auth } from '../../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check authentication state on mount and listen for changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in, check if they own this restaurant
+        try {
+          const storedRestaurantId = localStorage.getItem('restaurantId');
+          if (storedRestaurantId === restaurant.id) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        } catch (err) {
+          setIsAuthenticated(false);
+        }
+      } else {
+        // User is signed out
+        setIsAuthenticated(false);
+      }
+      setIsCheckingAuth(false);
+    });
+
+    return () => unsubscribe();
+  }, [restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +54,8 @@ const AdminDashboard = () => {
         return;
       }
 
+      // Store restaurant ID in localStorage for persistence
+      localStorage.setItem('restaurantId', restaurant.id!);
       setIsAuthenticated(true);
     } catch (err: any) {
       setError(err.message || 'Failed to login');
@@ -33,6 +63,28 @@ const AdminDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      localStorage.removeItem('restaurantId');
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     // Login Form
@@ -112,8 +164,8 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-xl font-bold">{restaurant.name} - Dashboard</h1>
             <button
-              onClick={() => setIsAuthenticated(false)}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors"
             >
               Logout
             </button>
