@@ -196,7 +196,7 @@ const Signup = () => {
                   Your Restaurant URL *
                 </label>
                 <div className="flex items-stretch border border-input rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                  <span className="flex items-center px-4 py-3 bg-muted text-muted-foreground text-sm whitespace-nowrap">
+                  <span className="flex items-center px-3 py-3 bg-muted/70 text-muted-foreground/60 text-sm font-mono whitespace-nowrap border-r border-input">
                     orderdirect-eight.vercel.app/
                   </span>
                   <input
@@ -208,7 +208,7 @@ const Signup = () => {
                       handleChange(e);
                       setSubdomainAvailable(null);
                     }}
-                    className="flex-1 px-4 py-3 focus:outline-none"
+                    className="flex-1 pl-0 pr-4 py-3 focus:outline-none font-mono"
                     placeholder="yourrestaurant"
                   />
                 </div>
