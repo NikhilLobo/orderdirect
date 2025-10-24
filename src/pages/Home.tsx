@@ -25,9 +25,11 @@ const Home = () => {
               <div className="flex justify-center md:justify-start">
                 <Link
                   to="/signup"
-                  className="px-8 py-4 bg-white text-primary rounded-lg hover:bg-gray-100 transition-all hover:shadow-xl font-bold text-lg shadow-lg transform hover:scale-105"
+                  className="relative px-8 py-4 bg-gradient-to-r from-white to-gray-50 text-primary rounded-lg font-bold text-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:scale-105 active:scale-95"
                 >
-                  Get Started →
+                  {/* Animated shine effect */}
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 group-hover:animate-shine"></span>
+                  <span className="relative">Get Started →</span>
                 </Link>
               </div>
 
@@ -319,9 +321,11 @@ const Home = () => {
 
               <Link
                 to="/signup"
-                className="block w-full py-5 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground text-center rounded-xl hover:shadow-2xl transition-all font-bold text-xl"
+                className="relative block w-full py-5 bg-gradient-to-r from-primary to-[#a01822] text-white text-center rounded-xl font-bold text-xl overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
               >
-                Get Started →
+                {/* Animated shine effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 group-hover:animate-shine"></span>
+                <span className="relative">Get Started →</span>
               </Link>
             </div>
           </div>
@@ -344,9 +348,11 @@ const Home = () => {
           </p>
           <Link
             to="/signup"
-            className="inline-block px-10 py-4 bg-white text-primary rounded-lg hover:bg-gray-100 transition-all hover:shadow-2xl font-bold text-lg shadow-lg transform hover:scale-105"
+            className="relative inline-block px-10 py-4 bg-gradient-to-r from-white to-gray-50 text-primary rounded-lg font-bold text-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:scale-105 active:scale-95"
           >
-            Get Started Today →
+            {/* Animated shine effect */}
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30 group-hover:animate-shine"></span>
+            <span className="relative">Get Started Today →</span>
           </Link>
           <p className="mt-6 text-sm opacity-80">
             No setup fees • Cancel anytime • Full support included
