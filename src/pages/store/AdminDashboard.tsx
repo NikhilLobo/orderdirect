@@ -294,23 +294,15 @@ const AdminDashboard = () => {
       <div className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold">{restaurant.name}</h1>
+            <a
+              href={`/${restaurant.subdomain}`}
+              className="text-xl font-bold hover:text-[#cb202d] transition-colors cursor-pointer"
+            >
+              {restaurant.name}
+            </a>
 
             {/* Navigation - Right Side */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setActiveView('pos');
-                  setSelectedCategory(null);
-                }}
-                className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                  activeView === 'pos'
-                    ? 'bg-[#cb202d] text-white shadow-md'
-                    : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
-                }`}
-              >
-                📋 Menu View
-              </button>
               <button
                 onClick={() => setActiveView('orders')}
                 className={`px-4 py-2 rounded-lg font-bold transition-all relative ${
@@ -319,9 +311,9 @@ const AdminDashboard = () => {
                     : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
                 }`}
               >
-                📦 Orders
+                🛒 Online Orders
                 {openOrdersCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
                     {openOrdersCount}
                   </span>
                 )}
