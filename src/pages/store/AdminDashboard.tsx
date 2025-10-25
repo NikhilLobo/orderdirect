@@ -218,13 +218,13 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={() => setShowMenuManagement(true)}
-                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-200 text-left group"
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-200">
                       <span className="text-2xl">📋</span>
                     </div>
-                    <h3 className="text-lg font-bold">Manage Menu</h3>
+                    <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Manage Menu</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Add, edit, and organize your menu items and categories
