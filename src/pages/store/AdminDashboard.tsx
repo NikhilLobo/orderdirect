@@ -329,7 +329,7 @@ const AdminDashboard = () => {
                     : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
                 }`}
               >
-                ⚙️ Manage
+                ⚙️ Manage Menu
               </button>
               <button
                 onClick={handleLogout}
