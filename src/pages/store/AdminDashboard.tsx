@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [menuItemCount, setMenuItemCount] = useState(0);
+  const [showMenuManagement, setShowMenuManagement] = useState(false);
 
   // Check authentication state on mount and listen for changes
   useEffect(() => {
@@ -193,27 +194,92 @@ const AdminDashboard = () => {
 
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {/* Stats Cards */}
-          <div className="bg-card rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Today's Orders</h3>
-            <p className="text-3xl font-bold">0</p>
-          </div>
-          <div className="bg-card rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Revenue Today</h3>
-            <p className="text-3xl font-bold">£0</p>
-          </div>
-          <div className="bg-card rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Menu Items</h3>
-            <p className="text-3xl font-bold">{menuItemCount}</p>
-          </div>
-        </div>
+        {!showMenuManagement ? (
+          <>
+            {/* Stats Cards */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Today's Orders</h3>
+                <p className="text-3xl font-bold">0</p>
+              </div>
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Revenue Today</h3>
+                <p className="text-3xl font-bold">£0</p>
+              </div>
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Menu Items</h3>
+                <p className="text-3xl font-bold">{menuItemCount}</p>
+              </div>
+            </div>
 
-        {/* Menu Management */}
-        <MenuManagement
-          restaurantId={restaurant.id!}
-          onMenuItemsChange={(count) => setMenuItemCount(count)}
-        />
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setShowMenuManagement(true)}
+                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <span className="text-2xl">📋</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Manage Menu</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Add, edit, and organize your menu items and categories
+                  </p>
+                </button>
+
+                <button
+                  disabled
+                  className="p-6 border-2 border-border rounded-lg opacity-50 cursor-not-allowed text-left"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-2xl">📦</span>
+                    </div>
+                    <h3 className="text-lg font-bold">View Orders</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Manage incoming orders and order history (Coming Soon)
+                  </p>
+                </button>
+
+                <button
+                  disabled
+                  className="p-6 border-2 border-border rounded-lg opacity-50 cursor-not-allowed text-left"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-2xl">⚙️</span>
+                    </div>
+                    <h3 className="text-lg font-bold">Settings</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Configure restaurant details and preferences (Coming Soon)
+                  </p>
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Back Button */}
+            <button
+              onClick={() => setShowMenuManagement(false)}
+              className="mb-6 px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
+            >
+              ← Back to Dashboard
+            </button>
+
+            {/* Menu Management */}
+            <MenuManagement
+              restaurantId={restaurant.id!}
+              onMenuItemsChange={(count) => setMenuItemCount(count)}
+            />
+          </>
+        )}
       </div>
     </div>
   );
