@@ -244,7 +244,7 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
           {!showCategoryForm && (
             <button
               onClick={() => setShowCategoryForm(true)}
-              className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
+              className="px-6 py-3 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
             >
               + Add Category
             </button>
@@ -282,7 +282,7 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:opacity-90"
+                  className="px-6 py-2 bg-[#cb202d] text-white rounded-lg font-medium hover:opacity-90"
                 >
                   {editingCategory ? 'Update Category' : 'Add Category'}
                 </button>
@@ -359,7 +359,7 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
           {!showMenuItemForm && categories.length > 0 && (
             <button
               onClick={() => setShowMenuItemForm(true)}
-              className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
+              className="px-6 py-3 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
             >
               + Add Menu Item
             </button>
@@ -462,7 +462,7 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
                   <div className="flex gap-3">
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:opacity-90"
+                      className="px-6 py-2 bg-[#cb202d] text-white rounded-lg font-medium hover:opacity-90"
                     >
                       {editingItem ? 'Update Item' : 'Add Item'}
                     </button>
