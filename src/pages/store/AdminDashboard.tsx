@@ -16,11 +16,50 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [menuItemCount, setMenuItemCount] = useState(0);
-  const [activeView, setActiveView] = useState<'pos' | 'manage'>('pos');
+  const [activeView, setActiveView] = useState<'pos' | 'manage' | 'orders'>('pos');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, { item: MenuItem; quantity: number }>>({});
+
+  // Mock orders data (will be replaced with Firebase later)
+  const [orders, setOrders] = useState([
+    {
+      id: '001',
+      status: 'open',
+      customerName: 'John Doe',
+      items: [
+        { name: 'Margherita Pizza', quantity: 2, price: 12.99 },
+        { name: 'Coca Cola', quantity: 1, price: 2.50 },
+      ],
+      total: 28.48,
+      createdAt: new Date(),
+    },
+    {
+      id: '002',
+      status: 'open',
+      customerName: 'Jane Smith',
+      items: [
+        { name: 'Pepperoni Pizza', quantity: 1, price: 14.99 },
+      ],
+      total: 14.99,
+      createdAt: new Date(Date.now() - 300000), // 5 mins ago
+    },
+    {
+      id: '003',
+      status: 'closed',
+      customerName: 'Bob Wilson',
+      items: [
+        { name: 'Veggie Supreme', quantity: 1, price: 13.99 },
+        { name: 'Garlic Bread', quantity: 2, price: 3.99 },
+      ],
+      total: 21.97,
+      createdAt: new Date(Date.now() - 3600000), // 1 hour ago
+    },
+  ]);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const openOrdersCount = orders.filter((o) => o.status === 'open').length;
 
   // Check authentication state on mount and listen for changes
   useEffect(() => {
@@ -273,6 +312,21 @@ const AdminDashboard = () => {
                 📋 Menu View
               </button>
               <button
+                onClick={() => setActiveView('orders')}
+                className={`px-4 py-2 rounded-lg font-bold transition-all relative ${
+                  activeView === 'orders'
+                    ? 'bg-[#cb202d] text-white shadow-md'
+                    : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
+                }`}
+              >
+                📦 Orders
+                {openOrdersCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                    {openOrdersCount}
+                  </span>
+                )}
+              </button>
+              <button
                 onClick={() => setActiveView('manage')}
                 className={`px-4 py-2 rounded-lg font-bold transition-all ${
                   activeView === 'manage'
@@ -495,6 +549,177 @@ const AdminDashboard = () => {
                 </div>
               </>
             )}
+          </>
+        ) : activeView === 'orders' ? (
+          <>
+            {/* Orders View */}
+            <div className="grid grid-cols-12 gap-6">
+              {/* Orders List */}
+              <div className="col-span-7">
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-bold mb-6">Orders</h2>
+
+                  {/* Open Orders */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold mb-4 text-orange-600">
+                      Open Orders ({orders.filter((o) => o.status === 'open').length})
+                    </h3>
+                    <div className="space-y-3">
+                      {orders
+                        .filter((o) => o.status === 'open')
+                        .map((order) => (
+                          <button
+                            key={order.id}
+                            onClick={() => setSelectedOrderId(order.id)}
+                            className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                              selectedOrderId === order.id
+                                ? 'border-[#cb202d] bg-red-50'
+                                : 'border-orange-300 bg-orange-50 hover:border-orange-400'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-lg">Order #{order.id}</span>
+                              <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
+                                OPEN
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">{order.customerName}</span>
+                              <span className="font-bold text-[#cb202d]">£{order.total.toFixed(2)}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.items.length} items • {new Date(order.createdAt).toLocaleTimeString()}
+                            </p>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Closed Orders */}
+                  <div>
+                    <h3 className="text-lg font-bold mb-4 text-gray-500">
+                      Closed Orders ({orders.filter((o) => o.status === 'closed').length})
+                    </h3>
+                    <div className="space-y-3">
+                      {orders
+                        .filter((o) => o.status === 'closed')
+                        .map((order) => (
+                          <button
+                            key={order.id}
+                            onClick={() => setSelectedOrderId(order.id)}
+                            className={`w-full p-4 rounded-lg border-2 transition-all text-left opacity-60 hover:opacity-100 ${
+                              selectedOrderId === order.id
+                                ? 'border-[#cb202d] bg-red-50 opacity-100'
+                                : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-lg">Order #{order.id}</span>
+                              <span className="px-3 py-1 bg-gray-400 text-white text-xs font-bold rounded-full">
+                                CLOSED
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">{order.customerName}</span>
+                              <span className="font-bold text-gray-700">£{order.total.toFixed(2)}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.items.length} items • {new Date(order.createdAt).toLocaleTimeString()}
+                            </p>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Details Panel */}
+              <div className="col-span-5">
+                <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+                  {selectedOrderId ? (
+                    (() => {
+                      const order = orders.find((o) => o.id === selectedOrderId);
+                      if (!order) return null;
+                      return (
+                        <>
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold">Order #{order.id}</h3>
+                            <span
+                              className={`px-3 py-1 text-xs font-bold rounded-full ${
+                                order.status === 'open'
+                                  ? 'bg-orange-500 text-white'
+                                  : 'bg-gray-400 text-white'
+                              }`}
+                            >
+                              {order.status.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div className="mb-6">
+                            <p className="text-sm text-gray-600 mb-1">Customer</p>
+                            <p className="font-bold">{order.customerName}</p>
+                          </div>
+
+                          <div className="mb-6">
+                            <p className="text-sm text-gray-600 mb-1">Time</p>
+                            <p className="font-medium">
+                              {new Date(order.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="border-t pt-4 mb-6">
+                            <h4 className="font-bold mb-3">Items</h4>
+                            <div className="space-y-2">
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">{item.name}</p>
+                                    <p className="text-xs text-gray-600">
+                                      £{item.price.toFixed(2)} × {item.quantity}
+                                    </p>
+                                  </div>
+                                  <p className="font-bold text-[#cb202d]">
+                                    £{(item.price * item.quantity).toFixed(2)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="border-t pt-4 mb-6">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-lg">Total:</span>
+                              <span className="font-bold text-2xl text-[#cb202d]">
+                                £{order.total.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {order.status === 'open' && (
+                            <button
+                              onClick={() => {
+                                setOrders((prev) =>
+                                  prev.map((o) =>
+                                    o.id === order.id ? { ...o, status: 'closed' } : o
+                                  )
+                                );
+                              }}
+                              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
+                            >
+                              Mark as Complete
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <div className="text-center py-12 text-gray-400">
+                      <p>Select an order to view details</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </>
         ) : (
           <>
