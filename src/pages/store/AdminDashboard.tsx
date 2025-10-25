@@ -294,12 +294,15 @@ const AdminDashboard = () => {
       <div className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <a
-              href={`/${restaurant.subdomain}`}
+            <button
+              onClick={() => {
+                setActiveView('pos');
+                setSelectedCategory(null);
+              }}
               className="text-xl font-bold hover:text-[#cb202d] transition-colors cursor-pointer"
             >
               {restaurant.name}
-            </a>
+            </button>
 
             {/* Navigation - Right Side */}
             <div className="flex items-center gap-2">
