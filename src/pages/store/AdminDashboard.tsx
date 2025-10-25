@@ -345,58 +345,52 @@ const AdminDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {/* POS-Style List for Quick Ordering */}
-                    <div className="divide-y divide-gray-200">
-                      {filteredMenuItems.map((item) => (
-                        <button
-                          key={item.id}
-                          className={`w-full p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left flex items-center gap-4 ${
-                            !item.available ? 'opacity-50' : ''
-                          }`}
-                          disabled={!item.available}
-                        >
-                          {/* Item Icon/Image */}
-                          <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-2xl">🍽️</span>
-                            )}
-                          </div>
+                  <div className={`grid gap-3 ${
+                    filteredMenuItems.length <= 4 ? 'grid-cols-2' :
+                    filteredMenuItems.length <= 9 ? 'grid-cols-3' :
+                    'grid-cols-4'
+                  }`}>
+                    {filteredMenuItems.map((item) => (
+                      <button
+                        key={item.id}
+                        className={`bg-white rounded-lg shadow-md hover:shadow-xl active:shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all p-3 text-left ${
+                          !item.available ? 'opacity-50' : ''
+                        }`}
+                        disabled={!item.available}
+                      >
+                        {/* Item Icon/Image - Smaller */}
+                        <div className="w-full aspect-square mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-4xl">🍽️</span>
+                          )}
+                        </div>
 
-                          {/* Item Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-lg truncate">{item.name}</h3>
-                                <p className="text-sm text-muted-foreground line-clamp-1">
-                                  {item.description}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {!item.available && (
-                                  <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium whitespace-nowrap">
-                                    Out of Stock
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                        {/* Item Details - Compact */}
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
+                            {item.name}
+                          </h3>
 
-                          {/* Price */}
-                          <div className="flex-shrink-0 text-right">
-                            <p className="text-2xl font-bold text-[#cb202d]">
-                              £{item.price.toFixed(2)}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                          {/* Price - Large and Prominent */}
+                          <p className="text-xl font-bold text-[#cb202d]">
+                            £{item.price.toFixed(2)}
+                          </p>
+
+                          {/* Status Badge */}
+                          {!item.available && (
+                            <span className="inline-block px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-medium">
+                              Out of Stock
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 )}
               </>
