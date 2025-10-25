@@ -5,7 +5,8 @@ import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
-import { getMenuItemsByRestaurant } from '../../services/menuService';
+import { getMenuItemsByRestaurant, type MenuItem } from '../../services/menuService';
+import { getCategoriesByRestaurant, type Category } from '../../services/categoryService';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -15,7 +16,10 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [menuItemCount, setMenuItemCount] = useState(0);
-  const [showMenuManagement, setShowMenuManagement] = useState(false);
+  const [activeView, setActiveView] = useState<'pos' | 'manage'>('pos');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // Check authentication state on mount and listen for changes
   useEffect(() => {
@@ -42,20 +46,25 @@ const AdminDashboard = () => {
     return () => unsubscribe();
   }, [restaurant.id]);
 
-  // Load menu item count when authenticated
+  // Load categories and menu items when authenticated
   useEffect(() => {
-    const loadStats = async () => {
+    const loadData = async () => {
       if (isAuthenticated && restaurant.id) {
         try {
-          const menuItems = await getMenuItemsByRestaurant(restaurant.id);
-          setMenuItemCount(menuItems.length);
+          const [categoriesData, menuItemsData] = await Promise.all([
+            getCategoriesByRestaurant(restaurant.id),
+            getMenuItemsByRestaurant(restaurant.id),
+          ]);
+          setCategories(categoriesData);
+          setMenuItems(menuItemsData);
+          setMenuItemCount(menuItemsData.length);
         } catch (err) {
-          console.error('Failed to load menu items:', err);
+          console.error('Failed to load data:', err);
         }
       }
     };
 
-    loadStats();
+    loadData();
   }, [isAuthenticated, restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -174,105 +183,201 @@ const AdminDashboard = () => {
     );
   }
 
+  // Helper function to get category color
+  const getCategoryColor = (index: number) => {
+    const colors = [
+      'bg-gradient-to-br from-blue-400 to-blue-600',
+      'bg-gradient-to-br from-green-400 to-green-600',
+      'bg-gradient-to-br from-purple-400 to-purple-600',
+      'bg-gradient-to-br from-orange-400 to-orange-600',
+      'bg-gradient-to-br from-pink-400 to-pink-600',
+      'bg-gradient-to-br from-teal-400 to-teal-600',
+      'bg-gradient-to-br from-indigo-400 to-indigo-600',
+      'bg-gradient-to-br from-red-400 to-red-600',
+    ];
+    return colors[index % colors.length];
+  };
+
+  // Filter menu items by selected category
+  const filteredMenuItems = selectedCategory
+    ? menuItems.filter((item) => item.category === selectedCategory)
+    : menuItems;
+
   // Dashboard (After Login)
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Dashboard Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold">{restaurant.name} - Dashboard</h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors"
-            >
-              Logout
-            </button>
+            <h1 className="text-xl font-bold">{restaurant.name}</h1>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setActiveView('pos');
+                  setSelectedCategory(null);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeView === 'pos'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                📋 Menu View
+              </button>
+              <button
+                onClick={() => setActiveView('manage')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeView === 'manage'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                ⚙️ Manage
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors ml-2"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-8">
-        {!showMenuManagement ? (
+        {activeView === 'pos' ? (
           <>
-            {/* Stats Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-card rounded-xl shadow-lg p-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Today's Orders</h3>
-                <p className="text-3xl font-bold">0</p>
-              </div>
-              <div className="bg-card rounded-xl shadow-lg p-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Revenue Today</h3>
-                <p className="text-3xl font-bold">£0</p>
-              </div>
-              <div className="bg-card rounded-xl shadow-lg p-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Menu Items</h3>
-                <p className="text-3xl font-bold">{menuItemCount}</p>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setShowMenuManagement(true)}
-                  className="p-6 border-2 border-border rounded-lg hover:border-primary hover:bg-primary/5 hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-200 text-left group"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-200">
-                      <span className="text-2xl">📋</span>
+            {!selectedCategory ? (
+              <>
+                {/* Category View - Big Colorful Tiles */}
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold mb-4">Menu Categories</h2>
+                  {categories.length === 0 ? (
+                    <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                      <p className="text-muted-foreground mb-4">No categories yet. Create categories in Manage view.</p>
+                      <button
+                        onClick={() => setActiveView('manage')}
+                        className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:opacity-90"
+                      >
+                        Go to Manage
+                      </button>
                     </div>
-                    <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Manage Menu</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Add, edit, and organize your menu items and categories
-                  </p>
-                </button>
-
-                <button
-                  disabled
-                  className="p-6 border-2 border-border rounded-lg opacity-50 cursor-not-allowed text-left"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">📦</span>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {categories.map((category, index) => {
+                        const itemCount = menuItems.filter(
+                          (item) => item.category === category.name
+                        ).length;
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => setSelectedCategory(category.name)}
+                            className={`${getCategoryColor(
+                              index
+                            )} text-white rounded-2xl p-8 shadow-lg hover:shadow-2xl hover:-translate-y-2 active:translate-y-0 transition-all duration-200 group relative overflow-hidden`}
+                          >
+                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                            <div className="relative z-10">
+                              <h3 className="text-2xl font-bold mb-2">{category.name}</h3>
+                              {category.description && (
+                                <p className="text-sm opacity-90 mb-3">{category.description}</p>
+                              )}
+                              <div className="inline-block px-3 py-1 bg-white/30 rounded-full text-sm font-medium">
+                                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                    <h3 className="text-lg font-bold">View Orders</h3>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Menu Items View - Product Tiles */}
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      ← Back to Categories
+                    </button>
+                    <h2 className="text-2xl font-bold">{selectedCategory}</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Manage incoming orders and order history (Coming Soon)
+                  <p className="text-muted-foreground">
+                    {filteredMenuItems.length} {filteredMenuItems.length === 1 ? 'item' : 'items'}
                   </p>
-                </button>
+                </div>
 
-                <button
-                  disabled
-                  className="p-6 border-2 border-border rounded-lg opacity-50 cursor-not-allowed text-left"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">⚙️</span>
-                    </div>
-                    <h3 className="text-lg font-bold">Settings</h3>
+                {filteredMenuItems.length === 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                    <p className="text-muted-foreground mb-4">
+                      No items in this category yet. Add items in Manage view.
+                    </p>
+                    <button
+                      onClick={() => setActiveView('manage')}
+                      className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:opacity-90"
+                    >
+                      Add Items
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Configure restaurant details and preferences (Coming Soon)
-                  </p>
-                </button>
-              </div>
-            </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredMenuItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 group"
+                      >
+                        {item.imageUrl ? (
+                          <div className="h-48 overflow-hidden bg-gray-100">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <span className="text-6xl">🍽️</span>
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-bold text-lg flex-1">{item.name}</h3>
+                            {!item.available && (
+                              <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">
+                                Unavailable
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {item.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-2xl font-bold text-primary">£{item.price.toFixed(2)}</p>
+                            {item.available && (
+                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                                Available
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </>
         ) : (
           <>
-            {/* Back Button */}
-            <button
-              onClick={() => setShowMenuManagement(false)}
-              className="mb-6 px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
-            >
-              ← Back to Dashboard
-            </button>
-
             {/* Menu Management */}
             <MenuManagement
               restaurantId={restaurant.id!}
