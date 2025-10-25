@@ -212,14 +212,14 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-xl font-bold">{restaurant.name}</h1>
 
-            {/* Navigation - Centered */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3">
+            {/* Navigation - Right Side */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setActiveView('pos');
                   setSelectedCategory(null);
                 }}
-                className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${
                   activeView === 'pos'
                     ? 'bg-[#cb202d] text-white shadow-md'
                     : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
@@ -229,7 +229,7 @@ const AdminDashboard = () => {
               </button>
               <button
                 onClick={() => setActiveView('manage')}
-                className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${
                   activeView === 'manage'
                     ? 'bg-[#cb202d] text-white shadow-md'
                     : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
@@ -237,15 +237,13 @@ const AdminDashboard = () => {
               >
                 ⚙️ Manage
               </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors ml-2"
+              >
+                Logout
+              </button>
             </div>
-
-            {/* Logout Button - Right Side */}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors"
-            >
-              Logout
-            </button>
           </div>
         </div>
       </div>
@@ -254,6 +252,22 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {activeView === 'pos' ? (
           <>
+            {/* Stats Cards */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Today's Orders</h3>
+                <p className="text-3xl font-bold">0</p>
+              </div>
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Revenue Today</h3>
+                <p className="text-3xl font-bold">£0</p>
+              </div>
+              <div className="bg-card rounded-xl shadow-lg p-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Menu Items</h3>
+                <p className="text-3xl font-bold">{menuItemCount}</p>
+              </div>
+            </div>
+
             {!selectedCategory ? (
               <>
                 {/* Category View - Big Colorful Tiles */}
