@@ -3,6 +3,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   query,
@@ -115,7 +116,7 @@ export const updateMenuItem = async (menuItemId: string, updates: Partial<MenuIt
   try {
     const menuItemRef = doc(db, 'menuItems', menuItemId);
 
-    // Filter out undefined values from updates
+    // Build update data, filtering out undefined but keeping explicit values
     const data: any = { updatedAt: Timestamp.now() };
 
     Object.keys(updates).forEach((key) => {
@@ -124,6 +125,11 @@ export const updateMenuItem = async (menuItemId: string, updates: Partial<MenuIt
         data[key] = value;
       }
     });
+
+    // If imageUrl is explicitly set to empty string, remove it from the document
+    if ('imageUrl' in updates && (!updates.imageUrl || updates.imageUrl === '')) {
+      data.imageUrl = deleteField();
+    }
 
     await updateDoc(menuItemRef, data);
   } catch (error) {
