@@ -20,7 +20,16 @@ const AdminDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [orderItems, setOrderItems] = useState<Record<string, { item: MenuItem; quantity: number }>>({});
+  const [orderItems, setOrderItems] = useState<Record<string, { item: MenuItem; quantity: number }>>(() => {
+    // Load order from localStorage on initial mount
+    try {
+      const savedOrder = localStorage.getItem(`pos_order_${restaurant.id}`);
+      return savedOrder ? JSON.parse(savedOrder) : {};
+    } catch (err) {
+      console.error('Failed to load saved order:', err);
+      return {};
+    }
+  });
 
   // Mock orders data (will be replaced with Firebase later)
   const [orders, setOrders] = useState([
@@ -106,6 +115,17 @@ const AdminDashboard = () => {
 
     loadData();
   }, [isAuthenticated, restaurant.id]);
+
+  // Save order to localStorage whenever it changes
+  useEffect(() => {
+    if (restaurant.id) {
+      try {
+        localStorage.setItem(`pos_order_${restaurant.id}`, JSON.stringify(orderItems));
+      } catch (err) {
+        console.error('Failed to save order:', err);
+      }
+    }
+  }, [orderItems, restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,6 +300,9 @@ const AdminDashboard = () => {
 
   const clearOrder = () => {
     setOrderItems({});
+    if (restaurant.id) {
+      localStorage.removeItem(`pos_order_${restaurant.id}`);
+    }
   };
 
   const orderTotal = Object.values(orderItems).reduce(
