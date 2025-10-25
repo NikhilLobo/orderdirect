@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [orderItems, setOrderItems] = useState<Record<string, { item: MenuItem; quantity: number }>>({});
 
   // Check authentication state on mount and listen for changes
   useEffect(() => {
@@ -203,6 +204,50 @@ const AdminDashboard = () => {
     ? menuItems.filter((item) => item.category === selectedCategory)
     : menuItems;
 
+  // Order management functions
+  const addToOrder = (item: MenuItem) => {
+    setOrderItems((prev) => {
+      const existing = prev[item.id!];
+      if (existing) {
+        return {
+          ...prev,
+          [item.id!]: { item, quantity: existing.quantity + 1 },
+        };
+      }
+      return {
+        ...prev,
+        [item.id!]: { item, quantity: 1 },
+      };
+    });
+  };
+
+  const updateQuantity = (itemId: string, delta: number) => {
+    setOrderItems((prev) => {
+      const existing = prev[itemId];
+      if (!existing) return prev;
+
+      const newQuantity = existing.quantity + delta;
+      if (newQuantity <= 0) {
+        const { [itemId]: removed, ...rest } = prev;
+        return rest;
+      }
+
+      return {
+        ...prev,
+        [itemId]: { ...existing, quantity: newQuantity },
+      };
+    });
+  };
+
+  const clearOrder = () => {
+    setOrderItems({});
+  };
+
+  const orderTotal = Object.values(orderItems).reduce(
+    (sum, { item, quantity }) => sum + item.price * quantity,
+    0
+  );
+
   // Dashboard (After Login)
   return (
     <div className="min-h-screen bg-muted/30">
@@ -316,83 +361,138 @@ const AdminDashboard = () => {
               </>
             ) : (
               <>
-                {/* Menu Items View - Product Tiles */}
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setSelectedCategory(null)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      ← Back to Categories
-                    </button>
-                    <h2 className="text-2xl font-bold">{selectedCategory}</h2>
+                {/* Split Screen: Menu Items (Left) + Order Panel (Right) */}
+                <div className="grid grid-cols-12 gap-6">
+                  {/* Left Side - Menu Items */}
+                  <div className="col-span-8">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => setSelectedCategory(null)}
+                          className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                        >
+                          ← Back
+                        </button>
+                        <h2 className="text-xl font-bold">{selectedCategory}</h2>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {filteredMenuItems.length} items
+                      </p>
+                    </div>
+
+                    {filteredMenuItems.length === 0 ? (
+                      <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                        <p className="text-muted-foreground mb-4">
+                          No items in this category yet.
+                        </p>
+                        <button
+                          onClick={() => setActiveView('manage')}
+                          className="px-6 py-3 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90"
+                        >
+                          Add Items
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {filteredMenuItems.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => addToOrder(item)}
+                            className={`bg-white rounded-lg shadow hover:shadow-lg active:shadow-sm hover:bg-gray-50 transition-all p-3 text-left ${
+                              !item.available ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            disabled={!item.available}
+                          >
+                            <h3 className="font-bold text-sm leading-tight line-clamp-2 mb-2 min-h-[2.5rem]">
+                              {item.name}
+                            </h3>
+                            <p className="text-lg font-bold text-[#cb202d]">
+                              £{item.price.toFixed(2)}
+                            </p>
+                            {!item.available && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-medium">
+                                Out of Stock
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-muted-foreground">
-                    {filteredMenuItems.length} {filteredMenuItems.length === 1 ? 'item' : 'items'}
-                  </p>
+
+                  {/* Right Side - Order Panel */}
+                  <div className="col-span-4">
+                    <div className="bg-white rounded-xl shadow-lg p-4 sticky top-8">
+                      <h3 className="text-lg font-bold mb-4">Current Order</h3>
+
+                      {Object.keys(orderItems).length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <p className="text-sm">No items added yet</p>
+                          <p className="text-xs mt-1">Click items to add to order</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
+                            {Object.values(orderItems).map(({ item, quantity }) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{item.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    £{item.price.toFixed(2)} each
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => updateQuantity(item.id!, -1)}
+                                    className="w-7 h-7 rounded bg-gray-200 hover:bg-gray-300 font-bold text-sm"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-8 text-center font-bold">{quantity}</span>
+                                  <button
+                                    onClick={() => updateQuantity(item.id!, 1)}
+                                    className="w-7 h-7 rounded bg-gray-200 hover:bg-gray-300 font-bold text-sm"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <p className="font-bold text-sm text-[#cb202d] w-16 text-right">
+                                  £{(item.price * quantity).toFixed(2)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="border-t pt-4 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-lg">Total:</span>
+                              <span className="font-bold text-2xl text-[#cb202d]">
+                                £{orderTotal.toFixed(2)}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={clearOrder}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                              >
+                                Clear
+                              </button>
+                              <button
+                                className="px-4 py-2 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
+                              >
+                                Checkout
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                {filteredMenuItems.length === 0 ? (
-                  <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-                    <p className="text-muted-foreground mb-4">
-                      No items in this category yet. Add items in Manage view.
-                    </p>
-                    <button
-                      onClick={() => setActiveView('manage')}
-                      className="px-6 py-3 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90"
-                    >
-                      Add Items
-                    </button>
-                  </div>
-                ) : (
-                  <div className={`grid gap-3 ${
-                    filteredMenuItems.length <= 4 ? 'grid-cols-2' :
-                    filteredMenuItems.length <= 9 ? 'grid-cols-3' :
-                    'grid-cols-4'
-                  }`}>
-                    {filteredMenuItems.map((item) => (
-                      <button
-                        key={item.id}
-                        className={`bg-white rounded-lg shadow-md hover:shadow-xl active:shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all p-3 text-left ${
-                          !item.available ? 'opacity-50' : ''
-                        }`}
-                        disabled={!item.available}
-                      >
-                        {/* Item Icon/Image - Smaller */}
-                        <div className="w-full aspect-square mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-4xl">🍽️</span>
-                          )}
-                        </div>
-
-                        {/* Item Details - Compact */}
-                        <div className="space-y-1">
-                          <h3 className="font-bold text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
-                            {item.name}
-                          </h3>
-
-                          {/* Price - Large and Prominent */}
-                          <p className="text-xl font-bold text-[#cb202d]">
-                            £{item.price.toFixed(2)}
-                          </p>
-
-                          {/* Status Badge */}
-                          {!item.available && (
-                            <span className="inline-block px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-medium">
-                              Out of Stock
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </>
             )}
           </>
