@@ -212,38 +212,40 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-xl font-bold">{restaurant.name}</h1>
 
-            {/* Navigation */}
-            <div className="flex items-center gap-2">
+            {/* Navigation - Centered */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3">
               <button
                 onClick={() => {
                   setActiveView('pos');
                   setSelectedCategory(null);
                 }}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-6 py-2 rounded-lg font-bold transition-all ${
                   activeView === 'pos'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[#cb202d] text-white shadow-md'
+                    : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
                 }`}
               >
                 📋 Menu View
               </button>
               <button
                 onClick={() => setActiveView('manage')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-6 py-2 rounded-lg font-bold transition-all ${
                   activeView === 'manage'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[#cb202d] text-white shadow-md'
+                    : 'border-2 border-[#cb202d] text-[#cb202d] hover:bg-[#cb202d] hover:text-white'
                 }`}
               >
                 ⚙️ Manage
               </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors ml-2"
-              >
-                Logout
-              </button>
             </div>
+
+            {/* Logout Button - Right Side */}
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
