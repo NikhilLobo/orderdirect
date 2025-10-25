@@ -17,9 +17,10 @@ import {
 
 interface MenuManagementProps {
   restaurantId: string;
+  onMenuItemsChange?: (count: number) => void;
 }
 
-const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
+const MenuManagement = ({ restaurantId, onMenuItemsChange }: MenuManagementProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +63,11 @@ const MenuManagement = ({ restaurantId }: MenuManagementProps) => {
       ]);
       setCategories(categoriesData);
       setMenuItems(itemsData);
+
+      // Notify parent of menu item count change
+      if (onMenuItemsChange) {
+        onMenuItemsChange(itemsData.length);
+      }
     } catch (err: any) {
       console.error('Error loading data:', err);
       setError(`Failed to load data: ${err.message || 'Unknown error'}`);

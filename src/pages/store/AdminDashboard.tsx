@@ -5,6 +5,7 @@ import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
+import { getMenuItemsByRestaurant } from '../../services/menuService';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -13,6 +14,7 @@ const AdminDashboard = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [menuItemCount, setMenuItemCount] = useState(0);
 
   // Check authentication state on mount and listen for changes
   useEffect(() => {
@@ -38,6 +40,22 @@ const AdminDashboard = () => {
 
     return () => unsubscribe();
   }, [restaurant.id]);
+
+  // Load menu item count when authenticated
+  useEffect(() => {
+    const loadStats = async () => {
+      if (isAuthenticated && restaurant.id) {
+        try {
+          const menuItems = await getMenuItemsByRestaurant(restaurant.id);
+          setMenuItemCount(menuItems.length);
+        } catch (err) {
+          console.error('Failed to load menu items:', err);
+        }
+      }
+    };
+
+    loadStats();
+  }, [isAuthenticated, restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,12 +205,15 @@ const AdminDashboard = () => {
           </div>
           <div className="bg-card rounded-xl shadow-lg p-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Menu Items</h3>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-3xl font-bold">{menuItemCount}</p>
           </div>
         </div>
 
         {/* Menu Management */}
-        <MenuManagement restaurantId={restaurant.id!} />
+        <MenuManagement
+          restaurantId={restaurant.id!}
+          onMenuItemsChange={(count) => setMenuItemCount(count)}
+        />
       </div>
     </div>
   );
