@@ -17,7 +17,16 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [menuItemCount, setMenuItemCount] = useState(0);
   const [activeView, setActiveView] = useState<'pos' | 'manage' | 'orders'>('pos');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    // Load selected category from localStorage on initial mount
+    try {
+      const savedCategory = localStorage.getItem(`pos_category_${restaurant.id}`);
+      return savedCategory || null;
+    } catch (err) {
+      console.error('Failed to load saved category:', err);
+      return null;
+    }
+  });
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, { item: MenuItem; quantity: number }>>(() => {
@@ -126,6 +135,21 @@ const AdminDashboard = () => {
       }
     }
   }, [orderItems, restaurant.id]);
+
+  // Save selected category to localStorage whenever it changes
+  useEffect(() => {
+    if (restaurant.id) {
+      try {
+        if (selectedCategory) {
+          localStorage.setItem(`pos_category_${restaurant.id}`, selectedCategory);
+        } else {
+          localStorage.removeItem(`pos_category_${restaurant.id}`);
+        }
+      } catch (err) {
+        console.error('Failed to save category:', err);
+      }
+    }
+  }, [selectedCategory, restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
