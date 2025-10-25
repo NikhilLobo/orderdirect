@@ -30,11 +30,25 @@ export interface MenuItem {
 export const addMenuItem = async (menuItem: Omit<MenuItem, 'id' | 'createdAt' | 'updatedAt'>) => {
   try {
     const menuItemsRef = collection(db, 'menuItems');
-    const docRef = await addDoc(menuItemsRef, {
-      ...menuItem,
+
+    // Filter out undefined values
+    const data: any = {
+      restaurantId: menuItem.restaurantId,
+      name: menuItem.name,
+      description: menuItem.description,
+      price: menuItem.price,
+      category: menuItem.category,
+      available: menuItem.available,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
-    });
+    };
+
+    // Only add imageUrl if it's provided
+    if (menuItem.imageUrl) {
+      data.imageUrl = menuItem.imageUrl;
+    }
+
+    const docRef = await addDoc(menuItemsRef, data);
 
     return {
       id: docRef.id,
@@ -100,10 +114,18 @@ export const getAvailableMenuItems = async (restaurantId: string): Promise<MenuI
 export const updateMenuItem = async (menuItemId: string, updates: Partial<MenuItem>) => {
   try {
     const menuItemRef = doc(db, 'menuItems', menuItemId);
-    await updateDoc(menuItemRef, {
-      ...updates,
-      updatedAt: Timestamp.now(),
+
+    // Filter out undefined values from updates
+    const data: any = { updatedAt: Timestamp.now() };
+
+    Object.keys(updates).forEach((key) => {
+      const value = updates[key as keyof MenuItem];
+      if (value !== undefined) {
+        data[key] = value;
+      }
     });
+
+    await updateDoc(menuItemRef, data);
   } catch (error) {
     console.error('Error updating menu item:', error);
     throw new Error('Failed to update menu item');
