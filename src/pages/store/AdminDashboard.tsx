@@ -339,54 +339,64 @@ const AdminDashboard = () => {
                     </p>
                     <button
                       onClick={() => setActiveView('manage')}
-                      className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:opacity-90"
+                      className="px-6 py-3 bg-[#cb202d] text-white rounded-lg font-bold hover:opacity-90"
                     >
                       Add Items
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredMenuItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 group"
-                      >
-                        {item.imageUrl ? (
-                          <div className="h-48 overflow-hidden bg-gray-100">
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            />
-                          </div>
-                        ) : (
-                          <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <span className="text-6xl">🍽️</span>
-                          </div>
-                        )}
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className="font-bold text-lg flex-1">{item.name}</h3>
-                            {!item.available && (
-                              <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">
-                                Unavailable
-                              </span>
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    {/* POS-Style List for Quick Ordering */}
+                    <div className="divide-y divide-gray-200">
+                      {filteredMenuItems.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`w-full p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left flex items-center gap-4 ${
+                            !item.available ? 'opacity-50' : ''
+                          }`}
+                          disabled={!item.available}
+                        >
+                          {/* Item Icon/Image */}
+                          <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-2xl">🍽️</span>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {item.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <p className="text-2xl font-bold text-primary">£{item.price.toFixed(2)}</p>
-                            {item.available && (
-                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                                Available
-                              </span>
-                            )}
+
+                          {/* Item Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-lg truncate">{item.name}</h3>
+                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                  {item.description}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {!item.available && (
+                                  <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium whitespace-nowrap">
+                                    Out of Stock
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+
+                          {/* Price */}
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-2xl font-bold text-[#cb202d]">
+                              £{item.price.toFixed(2)}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </>
