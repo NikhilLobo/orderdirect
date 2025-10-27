@@ -7,6 +7,7 @@ import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
 import { getMenuItemsByRestaurant, type MenuItem } from '../../services/menuService';
 import { getCategoriesByRestaurant, type Category } from '../../services/categoryService';
+import { getOrdersByRestaurant, completeOrder, type Order } from '../../services/ordersService';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -16,7 +17,16 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [menuItemCount, setMenuItemCount] = useState(0);
-  const [activeView, setActiveView] = useState<'pos' | 'manage' | 'orders'>('pos');
+  const [activeView, setActiveView] = useState<'pos' | 'manage' | 'orders'>(() => {
+    // Load active view from localStorage on initial mount
+    try {
+      const savedView = localStorage.getItem(`active_view_${restaurant.id}`);
+      return (savedView as 'pos' | 'manage' | 'orders') || 'pos';
+    } catch (err) {
+      console.error('Failed to load saved view:', err);
+      return 'pos';
+    }
+  });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
     // Load selected category from localStorage on initial mount
     try {
@@ -40,41 +50,8 @@ const AdminDashboard = () => {
     }
   });
 
-  // Mock orders data (will be replaced with Firebase later)
-  const [orders, setOrders] = useState([
-    {
-      id: '001',
-      status: 'open',
-      customerName: 'John Doe',
-      items: [
-        { name: 'Margherita Pizza', quantity: 2, price: 12.99 },
-        { name: 'Coca Cola', quantity: 1, price: 2.50 },
-      ],
-      total: 28.48,
-      createdAt: new Date(),
-    },
-    {
-      id: '002',
-      status: 'open',
-      customerName: 'Jane Smith',
-      items: [
-        { name: 'Pepperoni Pizza', quantity: 1, price: 14.99 },
-      ],
-      total: 14.99,
-      createdAt: new Date(Date.now() - 300000), // 5 mins ago
-    },
-    {
-      id: '003',
-      status: 'closed',
-      customerName: 'Bob Wilson',
-      items: [
-        { name: 'Veggie Supreme', quantity: 1, price: 13.99 },
-        { name: 'Garlic Bread', quantity: 2, price: 3.99 },
-      ],
-      total: 21.97,
-      createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-    },
-  ]);
+  // Orders data from Firebase
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const openOrdersCount = orders.filter((o) => o.status === 'open').length;
@@ -104,18 +81,20 @@ const AdminDashboard = () => {
     return () => unsubscribe();
   }, [restaurant.id]);
 
-  // Load categories and menu items when authenticated
+  // Load categories, menu items, and orders when authenticated
   useEffect(() => {
     const loadData = async () => {
       if (isAuthenticated && restaurant.id) {
         try {
-          const [categoriesData, menuItemsData] = await Promise.all([
+          const [categoriesData, menuItemsData, ordersData] = await Promise.all([
             getCategoriesByRestaurant(restaurant.id),
             getMenuItemsByRestaurant(restaurant.id),
+            getOrdersByRestaurant(restaurant.id),
           ]);
           setCategories(categoriesData);
           setMenuItems(menuItemsData);
           setMenuItemCount(menuItemsData.length);
+          setOrders(ordersData);
         } catch (err) {
           console.error('Failed to load data:', err);
         }
@@ -150,6 +129,17 @@ const AdminDashboard = () => {
       }
     }
   }, [selectedCategory, restaurant.id]);
+
+  // Save active view to localStorage whenever it changes
+  useEffect(() => {
+    if (restaurant.id) {
+      try {
+        localStorage.setItem(`active_view_${restaurant.id}`, activeView);
+      } catch (err) {
+        console.error('Failed to save active view:', err);
+      }
+    }
+  }, [activeView, restaurant.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -739,12 +729,19 @@ const AdminDashboard = () => {
 
                           {order.status === 'open' && (
                             <button
-                              onClick={() => {
-                                setOrders((prev) =>
-                                  prev.map((o) =>
-                                    o.id === order.id ? { ...o, status: 'closed' } : o
-                                  )
-                                );
+                              onClick={async () => {
+                                try {
+                                  await completeOrder(order.id!);
+                                  // Update local state
+                                  setOrders((prev) =>
+                                    prev.map((o) =>
+                                      o.id === order.id ? { ...o, status: 'closed' as const } : o
+                                    )
+                                  );
+                                } catch (err) {
+                                  console.error('Failed to complete order:', err);
+                                  alert('Failed to complete order. Please try again.');
+                                }
                               }}
                               className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
                             >
