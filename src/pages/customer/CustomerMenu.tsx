@@ -276,7 +276,9 @@ export const CustomerMenu: React.FC = () => {
               {categories.map((category) => (
                 <div
                   key={category}
-                  ref={(el) => (categoryRefs.current[category] = el)}
+                  ref={(el) => {
+                    categoryRefs.current[category] = el;
+                  }}
                   className="scroll-mt-32"
                 >
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">{category}</h2>
