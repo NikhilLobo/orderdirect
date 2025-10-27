@@ -86,6 +86,50 @@ export const updateCategory = async (categoryId: string, updates: Partial<Catego
 };
 
 /**
+ * Update category and all menu items that reference it
+ */
+export const updateCategoryWithItems = async (
+  categoryId: string,
+  oldCategoryName: string,
+  newCategoryName: string,
+  restaurantId: string
+) => {
+  try {
+    // Update the category itself
+    const categoryRef = doc(db, 'categories', categoryId);
+    await updateDoc(categoryRef, {
+      name: newCategoryName,
+      updatedAt: Timestamp.now(),
+    });
+
+    // Find all menu items with the old category name
+    const menuItemsRef = collection(db, 'menuItems');
+    const q = query(
+      menuItemsRef,
+      where('restaurantId', '==', restaurantId),
+      where('category', '==', oldCategoryName)
+    );
+    const querySnapshot = await getDocs(q);
+
+    // Update all menu items to use the new category name
+    const updatePromises = querySnapshot.docs.map((docSnapshot) => {
+      const itemRef = doc(db, 'menuItems', docSnapshot.id);
+      return updateDoc(itemRef, {
+        category: newCategoryName,
+        updatedAt: Timestamp.now(),
+      });
+    });
+
+    await Promise.all(updatePromises);
+
+    console.log(`Updated ${updatePromises.length} menu items from "${oldCategoryName}" to "${newCategoryName}"`);
+  } catch (error) {
+    console.error('Error updating category with items:', error);
+    throw new Error('Failed to update category and menu items');
+  }
+};
+
+/**
  * Delete a category
  */
 export const deleteCategory = async (categoryId: string) => {

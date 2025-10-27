@@ -11,6 +11,7 @@ import {
   getCategoriesByRestaurant,
   addCategory,
   updateCategory,
+  updateCategoryWithItems,
   deleteCategory,
   type Category,
 } from '../../services/categoryService';
@@ -101,11 +102,27 @@ const MenuManagement = ({ restaurantId, onMenuItemsChange }: MenuManagementProps
 
     try {
       if (editingCategory) {
-        await updateCategory(editingCategory.id!, {
-          name: categoryFormData.name,
-          description: categoryFormData.description,
-        });
-        setSuccess('Category updated successfully!');
+        // Check if the category name changed
+        const oldName = editingCategory.name;
+        const newName = categoryFormData.name;
+
+        if (oldName !== newName) {
+          // Category name changed - update category and all menu items
+          await updateCategoryWithItems(
+            editingCategory.id!,
+            oldName,
+            newName,
+            restaurantId
+          );
+          setSuccess('Category and menu items updated successfully!');
+        } else {
+          // Only description changed
+          await updateCategory(editingCategory.id!, {
+            name: categoryFormData.name,
+            description: categoryFormData.description,
+          });
+          setSuccess('Category updated successfully!');
+        }
       } else {
         await addCategory({
           restaurantId,
