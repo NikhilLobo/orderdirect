@@ -7,7 +7,7 @@ import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
 import { getMenuItemsByRestaurant, type MenuItem } from '../../services/menuService';
 import { getCategoriesByRestaurant, type Category } from '../../services/categoryService';
-import { getOrdersByRestaurant, completeOrder, createOrder, subscribeToOrders, type Order } from '../../services/ordersService';
+import { completeOrder, createOrder, subscribeToOrders, type Order } from '../../services/ordersService';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -663,7 +663,7 @@ const AdminDashboard = () => {
                         .map((order) => (
                           <button
                             key={order.id}
-                            onClick={() => setSelectedOrderId(order.id)}
+                            onClick={() => setSelectedOrderId(order.id || null)}
                             className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                               selectedOrderId === order.id
                                 ? 'border-[#cb202d] bg-red-50'
@@ -699,7 +699,7 @@ const AdminDashboard = () => {
                         .map((order) => (
                           <button
                             key={order.id}
-                            onClick={() => setSelectedOrderId(order.id)}
+                            onClick={() => setSelectedOrderId(order.id || null)}
                             className={`w-full p-4 rounded-lg border-2 transition-all text-left opacity-60 hover:opacity-100 ${
                               selectedOrderId === order.id
                                 ? 'border-[#cb202d] bg-red-50 opacity-100'
