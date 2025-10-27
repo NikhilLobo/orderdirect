@@ -25,6 +25,23 @@ const MenuManagement = ({ restaurantId, onMenuItemsChange }: MenuManagementProps
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get category color (matching POS dashboard)
+  const getCategoryColor = (categoryName: string) => {
+    const colors = [
+      'bg-gradient-to-br from-blue-400 to-blue-600',
+      'bg-gradient-to-br from-green-400 to-green-600',
+      'bg-gradient-to-br from-purple-400 to-purple-600',
+      'bg-gradient-to-br from-orange-400 to-orange-600',
+      'bg-gradient-to-br from-pink-400 to-pink-600',
+      'bg-gradient-to-br from-teal-400 to-teal-600',
+      'bg-gradient-to-br from-indigo-400 to-indigo-600',
+      'bg-gradient-to-br from-red-400 to-red-600',
+    ];
+    // Use category name to consistently get the same color
+    const index = categories.findIndex((cat) => cat.name === categoryName);
+    return colors[index % colors.length];
+  };
+
   // Category management
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -508,7 +525,14 @@ const MenuManagement = ({ restaurantId, onMenuItemsChange }: MenuManagementProps
               <div className="space-y-6">
                 {Object.entries(itemsByCategory).map(([categoryName, items]) => (
                   <div key={categoryName}>
-                    <h3 className="text-xl font-bold mb-4 text-primary">{categoryName}</h3>
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className={`${getCategoryColor(categoryName)} text-white px-4 py-2 rounded-lg font-bold text-lg shadow-md`}>
+                        {categoryName}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {items.length} {items.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
                     <div className="space-y-3">
                       {items.map((item) => (
                         <div
