@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, User, LogOut, Search } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, User, LogOut, Star, MapPin, Clock, Bike, Store } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useCustomerAuth } from '../../contexts/CustomerAuthContext';
 import { getAvailableMenuItems } from '../../services/menuService';
@@ -11,35 +11,24 @@ interface Restaurant {
   id: string;
   name: string;
   subdomain: string;
+  phone?: string;
+  ownerEmail?: string;
 }
-
-const getCategoryColor = (categoryName: string, allCategories: string[]) => {
-  const colors = [
-    'bg-gradient-to-br from-blue-400 to-blue-600',
-    'bg-gradient-to-br from-green-400 to-green-600',
-    'bg-gradient-to-br from-purple-400 to-purple-600',
-    'bg-gradient-to-br from-orange-400 to-orange-600',
-    'bg-gradient-to-br from-pink-400 to-pink-600',
-    'bg-gradient-to-br from-teal-400 to-teal-600',
-    'bg-gradient-to-br from-indigo-400 to-indigo-600',
-    'bg-gradient-to-br from-red-400 to-red-600',
-  ];
-  const index = allCategories.findIndex((cat) => cat === categoryName);
-  return colors[index % colors.length];
-};
 
 export const CustomerMenu: React.FC = () => {
   const { subdomain } = useParams<{ subdomain: string }>();
   const navigate = useNavigate();
-  const { cart, addItem, updateQuantity, getItemCount, getTotal } = useCart();
+  const { cart, addItem, updateQuantity, getItemCount, getSubtotal } = useCart();
   const { customer, signOut } = useCustomerAuth();
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
+  const [activeCategory, setActiveCategory] = useState<string>('');
+
+  const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,7 +40,6 @@ export const CustomerMenu: React.FC = () => {
 
       try {
         setIsLoading(true);
-        // Fetch restaurant info
         const restaurantData = await getRestaurantBySubdomain(subdomain);
         if (!restaurantData) {
           setError('Restaurant not found');
@@ -62,11 +50,18 @@ export const CustomerMenu: React.FC = () => {
           id: restaurantData.id,
           name: (restaurantData as any).name,
           subdomain: (restaurantData as any).subdomain,
+          phone: (restaurantData as any).phone,
+          ownerEmail: (restaurantData as any).ownerEmail,
         });
 
-        // Fetch available menu items
         const items = await getAvailableMenuItems(restaurantData.id);
         setMenuItems(items);
+
+        // Set first category as active
+        if (items.length > 0) {
+          const firstCategory = items[0].category;
+          setActiveCategory(firstCategory);
+        }
       } catch (err) {
         console.error('Error fetching menu:', err);
         setError('Failed to load menu');
@@ -89,23 +84,6 @@ export const CustomerMenu: React.FC = () => {
 
   const categories = Object.keys(groupedItems).sort();
 
-  // Filter items based on search and selected category
-  const filteredItems = menuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  // Regroup filtered items
-  const filteredGroupedItems = filteredItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, MenuItem[]>);
-
   const getItemQuantityInCart = (menuItemId: string): number => {
     const cartItem = cart.items.find((item) => item.menuItem.id === menuItemId);
     return cartItem ? cartItem.quantity : 0;
@@ -118,6 +96,21 @@ export const CustomerMenu: React.FC = () => {
 
   const handleUpdateQuantity = (menuItemId: string, newQuantity: number) => {
     updateQuantity(menuItemId, newQuantity);
+  };
+
+  const scrollToCategory = (category: string) => {
+    setActiveCategory(category);
+    const element = categoryRefs.current[category];
+    if (element) {
+      const offset = 180; // Account for fixed header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
   };
 
   const handleGoToCart = () => {
@@ -155,26 +148,26 @@ export const CustomerMenu: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{restaurant?.name}</h1>
-              <p className="text-sm text-gray-500">Browse our menu</p>
+      {/* Top Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo/Restaurant Name */}
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">{restaurant?.name}</h1>
             </div>
 
+            {/* User Actions */}
             <div className="flex items-center gap-4">
               {customer ? (
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{customer.name}</p>
-                    <p className="text-xs text-gray-500">{customer.email}</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900 hidden md:inline">
+                    {customer.name}
+                  </span>
                   <button
                     onClick={handleSignOut}
-                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Sign Out"
+                    className="text-sm text-gray-600 hover:text-red-600"
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
@@ -182,186 +175,304 @@ export const CustomerMenu: React.FC = () => {
               ) : (
                 <button
                   onClick={() => navigate(`/${subdomain}/login`)}
-                  className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="text-sm text-blue-600 font-medium hover:text-blue-700"
                 >
-                  <User className="w-5 h-5" />
-                  <span>Sign In</span>
+                  Sign In
                 </button>
               )}
-
-              {/* Cart Button */}
-              <button
-                onClick={handleGoToCart}
-                className="relative flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span className="font-medium">Cart</span>
-                {getItemCount() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                    {getItemCount()}
-                  </span>
-                )}
-              </button>
             </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="pb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search menu items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="pb-4 flex gap-2 overflow-x-auto">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === null
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              All
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
           </div>
         </div>
       </header>
 
-      {/* Menu Items */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {Object.keys(filteredGroupedItems).length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No items found</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(filteredGroupedItems).map(([category, items]) => (
-              <div key={category}>
-                {/* Category Header */}
-                <div className="mb-4 flex items-center gap-3">
-                  <span
-                    className={`${getCategoryColor(
-                      category,
-                      categories
-                    )} text-white px-4 py-2 rounded-lg font-bold text-lg shadow-md`}
-                  >
-                    {category}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {items.length} {items.length === 1 ? 'item' : 'items'}
-                  </span>
+      {/* Restaurant Info Card */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Left: Restaurant Info */}
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{restaurant?.name}</h2>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-medium">4.5</span>
+                  <span className="text-gray-400">(200+ ratings)</span>
                 </div>
-
-                {/* Menu Items Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {items.map((item) => {
-                    const quantityInCart = getItemQuantityInCart(item.id!);
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                      >
-                        {/* Item Image */}
-                        {item.imageUrl && (
-                          <div className="h-48 bg-gray-200">
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-
-                        {/* Item Details */}
-                        <div className="p-4">
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">
-                            {item.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                            {item.description}
-                          </p>
-                          <div className="flex justify-between items-center">
-                            <span className="text-xl font-bold text-blue-600">
-                              ${item.price.toFixed(2)}
-                            </span>
-
-                            {/* Add to Cart / Quantity Controls */}
-                            {quantityInCart === 0 ? (
-                              <button
-                                onClick={() => handleAddToCart(item)}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                              >
-                                <Plus className="w-4 h-4" />
-                                Add
-                              </button>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() =>
-                                    handleUpdateQuantity(item.id!, quantityInCart - 1)
-                                  }
-                                  className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </button>
-                                <span className="w-8 text-center font-bold text-gray-900">
-                                  {quantityInCart}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    handleUpdateQuantity(item.id!, quantityInCart + 1)
-                                  }
-                                  className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>25-35 mins</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>1.2 miles</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+            </div>
 
-      {/* Floating Cart Summary (Mobile) */}
+            {/* Right: Delivery/Collection Toggle */}
+            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setOrderType('delivery')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${
+                  orderType === 'delivery'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Bike className="w-5 h-5" />
+                <span>Delivery</span>
+              </button>
+              <button
+                onClick={() => setOrderType('collection')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${
+                  orderType === 'collection'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Store className="w-5 h-5" />
+                <span>Collection</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Left Sidebar - Category Navigation */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-32 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-200">
+                <h3 className="font-bold text-gray-900">Menu Categories</h3>
+              </div>
+              <nav className="py-2">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => scrollToCategory(category)}
+                    className={`w-full text-left px-4 py-3 transition-colors ${
+                      activeCategory === category
+                        ? 'bg-blue-50 text-blue-600 font-medium border-r-4 border-blue-600'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{category}</span>
+                      <span className="text-xs text-gray-500">
+                        {groupedItems[category].length}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* Center - Menu Items */}
+          <main className="flex-1 min-w-0">
+            <div className="space-y-8">
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  ref={(el) => (categoryRefs.current[category] = el)}
+                  className="scroll-mt-32"
+                >
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{category}</h2>
+                  <div className="grid gap-4">
+                    {groupedItems[category].map((item) => {
+                      const quantityInCart = getItemQuantityInCart(item.id!);
+                      return (
+                        <div
+                          key={item.id}
+                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex gap-4">
+                            {/* Item Details */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                {item.name}
+                              </h3>
+                              <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                {item.description}
+                              </p>
+                              <p className="text-lg font-bold text-gray-900">
+                                £{item.price.toFixed(2)}
+                              </p>
+                            </div>
+
+                            {/* Item Image */}
+                            {item.imageUrl && (
+                              <div className="w-24 h-24 flex-shrink-0">
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                              </div>
+                            )}
+
+                            {/* Add/Quantity Controls */}
+                            <div className="flex items-center">
+                              {quantityInCart === 0 ? (
+                                <button
+                                  onClick={() => handleAddToCart(item)}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                >
+                                  Add
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-1">
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateQuantity(item.id!, quantityInCart - 1)
+                                    }
+                                    className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                  >
+                                    <Minus className="w-5 h-5" />
+                                  </button>
+                                  <span className="w-8 text-center font-bold text-blue-600">
+                                    {quantityInCart}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateQuantity(item.id!, quantityInCart + 1)
+                                    }
+                                    className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                  >
+                                    <Plus className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
+
+          {/* Right Sidebar - Cart Summary */}
+          <aside className="hidden xl:block w-80 flex-shrink-0">
+            <div className="sticky top-32">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                {/* Cart Header */}
+                <div className="bg-blue-600 text-white p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="w-6 h-6" />
+                      <h3 className="font-bold text-lg">Basket</h3>
+                    </div>
+                    {getItemCount() > 0 && (
+                      <span className="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-bold">
+                        {getItemCount()} items
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cart Content */}
+                <div className="p-4">
+                  {cart.items.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300" />
+                      <p className="font-medium">Your basket is empty</p>
+                      <p className="text-sm mt-1">Add items to get started</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Cart Items */}
+                      <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
+                        {cart.items.map((item) => (
+                          <div
+                            key={item.menuItem.id}
+                            className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm">
+                                {item.quantity}x {item.menuItem.name}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-1">
+                                £{(item.menuItem.price * item.quantity).toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 bg-gray-100 rounded p-1">
+                              <button
+                                onClick={() =>
+                                  handleUpdateQuantity(
+                                    item.menuItem.id!,
+                                    item.quantity - 1
+                                  )
+                                }
+                                className="p-1 hover:bg-gray-200 rounded"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center text-sm font-medium">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleUpdateQuantity(
+                                    item.menuItem.id!,
+                                    item.quantity + 1
+                                  )
+                                }
+                                className="p-1 hover:bg-gray-200 rounded"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Total */}
+                      <div className="border-t border-gray-200 pt-4 mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span className="font-medium">£{getSubtotal().toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-lg font-bold">
+                          <span>Total</span>
+                          <span className="text-blue-600">£{getSubtotal().toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      {/* Checkout Button */}
+                      <button
+                        onClick={handleGoToCart}
+                        className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        View Basket
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {/* Mobile Floating Cart Button */}
       {getItemCount() > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden shadow-lg">
+        <div className="xl:hidden fixed bottom-4 left-4 right-4 z-50">
           <button
             onClick={handleGoToCart}
-            className="w-full flex items-center justify-between px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full flex items-center justify-between px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
           >
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              <span className="font-medium">{getItemCount()} items</span>
+            <div className="flex items-center gap-3">
+              <div className="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-bold">
+                {getItemCount()}
+              </div>
+              <span className="font-bold">View Basket</span>
             </div>
-            <span className="font-bold">${getTotal().toFixed(2)}</span>
+            <span className="font-bold text-lg">£{getSubtotal().toFixed(2)}</span>
           </button>
         </div>
       )}

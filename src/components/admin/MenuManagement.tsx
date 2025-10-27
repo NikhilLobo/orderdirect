@@ -106,8 +106,11 @@ const MenuManagement = ({ restaurantId, onMenuItemsChange }: MenuManagementProps
         const oldName = editingCategory.name;
         const newName = categoryFormData.name;
 
+        console.log('[MenuManagement] Editing category:', { oldName, newName, nameChanged: oldName !== newName });
+
         if (oldName !== newName) {
           // Category name changed - update category and all menu items
+          console.log('[MenuManagement] Category name changed - updating items...');
           await updateCategoryWithItems(
             editingCategory.id!,
             oldName,
