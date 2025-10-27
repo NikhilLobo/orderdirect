@@ -9,6 +9,14 @@ import Signup from './pages/Signup';
 import StorefrontLayout from './pages/store/StorefrontLayout';
 import Storefront from './pages/store/Storefront';
 import AdminDashboard from './pages/store/AdminDashboard';
+import { CustomerMenu } from './pages/customer/CustomerMenu';
+import { CustomerAuth } from './pages/customer/CustomerAuth';
+import { CustomerCart } from './pages/customer/CustomerCart';
+import { Checkout } from './pages/customer/Checkout';
+import { OrderConfirmation } from './pages/customer/OrderConfirmation';
+import { OrderTracking } from './pages/customer/OrderTracking';
+import { CartProvider } from './contexts/CartContext';
+import { CustomerAuthProvider } from './contexts/CustomerAuthContext';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -53,6 +61,12 @@ function App() {
             <Route path="/:subdomain" element={<StorefrontLayout />}>
               <Route index element={<Storefront />} />
               <Route path="admin" element={<AdminDashboard />} />
+              <Route path="menu" element={<CustomerMenu />} />
+              <Route path="login" element={<CustomerAuth />} />
+              <Route path="cart" element={<CustomerCart />} />
+              <Route path="checkout" element={<Checkout />} />
+              <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
+              <Route path="track-order/:orderId" element={<OrderTracking />} />
             </Route>
           </Routes>
         </main>
@@ -62,11 +76,15 @@ function App() {
   );
 }
 
-// Wrap App with Router
+// Wrap App with Router and Providers
 function AppWithRouter() {
   return (
     <Router>
-      <App />
+      <CustomerAuthProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </CustomerAuthProvider>
     </Router>
   );
 }
