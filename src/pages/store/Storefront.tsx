@@ -1,8 +1,18 @@
-import { useOutletContext } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
 import type { Restaurant } from '../../types/restaurant';
 
 const Storefront = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
+  const navigate = useNavigate();
+  const { subdomain } = useParams<{ subdomain: string }>();
+
+  // Redirect to menu page
+  useEffect(() => {
+    if (subdomain) {
+      navigate(`/${subdomain}/menu`, { replace: true });
+    }
+  }, [subdomain, navigate]);
 
   return (
     <div className="min-h-screen bg-muted/30">
