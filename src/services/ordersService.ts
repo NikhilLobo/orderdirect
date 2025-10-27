@@ -8,6 +8,7 @@ import {
   where,
   orderBy,
   Timestamp,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -55,27 +56,83 @@ export const createOrder = async (order: Omit<Order, 'id' | 'createdAt' | 'updat
 };
 
 /**
- * Get all orders for a restaurant
+ * Get all orders for a restaurant (one-time fetch)
  */
 export const getOrdersByRestaurant = async (restaurantId: string): Promise<Order[]> => {
   try {
     const ordersRef = collection(db, 'orders');
+    // Simplified query without orderBy to avoid requiring composite index
+    // We'll sort on the client side instead
     const q = query(
       ordersRef,
-      where('restaurantId', '==', restaurantId),
-      orderBy('createdAt', 'desc')
+      where('restaurantId', '==', restaurantId)
     );
     const querySnapshot = await getDocs(q);
 
-    return querySnapshot.docs.map((doc) => ({
+    const orders = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate(),
     })) as Order[];
+
+    // Sort by createdAt descending on the client side
+    return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw new Error('Failed to fetch orders');
+  }
+};
+
+/**
+ * Subscribe to real-time orders updates for a restaurant
+ * Returns an unsubscribe function to clean up the listener
+ */
+export const subscribeToOrders = (
+  restaurantId: string,
+  onUpdate: (orders: Order[]) => void,
+  onError?: (error: Error) => void
+) => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const q = query(
+      ordersRef,
+      where('restaurantId', '==', restaurantId)
+    );
+
+    // Set up real-time listener
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const orders = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate(),
+          updatedAt: doc.data().updatedAt?.toDate(),
+        })) as Order[];
+
+        // Sort by createdAt descending on the client side
+        const sortedOrders = orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+        // Call the callback with updated orders
+        onUpdate(sortedOrders);
+      },
+      (error) => {
+        console.error('Error in orders subscription:', error);
+        if (onError) {
+          onError(new Error('Failed to subscribe to orders'));
+        }
+      }
+    );
+
+    // Return unsubscribe function for cleanup
+    return unsubscribe;
+  } catch (error) {
+    console.error('Error setting up orders subscription:', error);
+    if (onError) {
+      onError(new Error('Failed to set up orders subscription'));
+    }
+    return () => {}; // Return empty function if setup fails
   }
 };
 

@@ -7,7 +7,7 @@ import type { Restaurant } from '../../types/restaurant';
 import MenuManagement from '../../components/admin/MenuManagement';
 import { getMenuItemsByRestaurant, type MenuItem } from '../../services/menuService';
 import { getCategoriesByRestaurant, type Category } from '../../services/categoryService';
-import { getOrdersByRestaurant, completeOrder, type Order } from '../../services/ordersService';
+import { getOrdersByRestaurant, completeOrder, createOrder, subscribeToOrders, type Order } from '../../services/ordersService';
 
 const AdminDashboard = () => {
   const { restaurant } = useOutletContext<{ restaurant: Restaurant }>();
@@ -86,15 +86,13 @@ const AdminDashboard = () => {
     const loadData = async () => {
       if (isAuthenticated && restaurant.id) {
         try {
-          const [categoriesData, menuItemsData, ordersData] = await Promise.all([
+          const [categoriesData, menuItemsData] = await Promise.all([
             getCategoriesByRestaurant(restaurant.id),
             getMenuItemsByRestaurant(restaurant.id),
-            getOrdersByRestaurant(restaurant.id),
           ]);
           setCategories(categoriesData);
           setMenuItems(menuItemsData);
           setMenuItemCount(menuItemsData.length);
-          setOrders(ordersData);
         } catch (err) {
           console.error('Failed to load data:', err);
         }
@@ -102,6 +100,33 @@ const AdminDashboard = () => {
     };
 
     loadData();
+  }, [isAuthenticated, restaurant.id]);
+
+  // Set up real-time orders subscription
+  useEffect(() => {
+    if (!isAuthenticated || !restaurant.id) {
+      return;
+    }
+
+    console.log('Setting up real-time orders subscription for restaurant:', restaurant.id);
+
+    // Subscribe to real-time orders updates
+    const unsubscribe = subscribeToOrders(
+      restaurant.id,
+      (updatedOrders) => {
+        console.log('Real-time orders update received:', updatedOrders.length, 'orders');
+        setOrders(updatedOrders);
+      },
+      (error) => {
+        console.error('Orders subscription error:', error);
+      }
+    );
+
+    // Cleanup: unsubscribe when component unmounts or dependencies change
+    return () => {
+      console.log('Cleaning up orders subscription');
+      unsubscribe();
+    };
   }, [isAuthenticated, restaurant.id]);
 
   // Save order to localStorage whenever it changes
@@ -323,6 +348,34 @@ const AdminDashboard = () => {
     (sum, { item, quantity }) => sum + item.price * quantity,
     0
   );
+
+  // Function to add a test order to Firebase
+  const addTestOrder = async () => {
+    try {
+      const testOrder = {
+        restaurantId: restaurant.id!,
+        status: 'open' as const,
+        customerName: `Test Customer ${Math.floor(Math.random() * 1000)}`,
+        customerEmail: 'test@example.com',
+        customerPhone: '+44 1234 567890',
+        items: [
+          { name: 'Margherita Pizza', quantity: 2, price: 12.99 },
+          { name: 'Caesar Salad', quantity: 1, price: 8.50 },
+          { name: 'Coke', quantity: 2, price: 2.50 },
+        ],
+        total: 39.48,
+      };
+
+      const newOrder = await createOrder(testOrder);
+      console.log('Test order created:', newOrder);
+
+      // No need to manually reload - real-time listener will update automatically!
+      alert('Test order created successfully! Watch it appear in real-time.');
+    } catch (err) {
+      console.error('Failed to create test order:', err);
+      alert('Failed to create test order. Please check console for details.');
+    }
+  };
 
   // Dashboard (After Login)
   return (
@@ -589,7 +642,15 @@ const AdminDashboard = () => {
               {/* Orders List */}
               <div className="col-span-7">
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-6">Orders</h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold">Orders</h2>
+                    <button
+                      onClick={addTestOrder}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      + Add Test Order
+                    </button>
+                  </div>
 
                   {/* Open Orders */}
                   <div className="mb-8">
@@ -732,12 +793,8 @@ const AdminDashboard = () => {
                               onClick={async () => {
                                 try {
                                   await completeOrder(order.id!);
-                                  // Update local state
-                                  setOrders((prev) =>
-                                    prev.map((o) =>
-                                      o.id === order.id ? { ...o, status: 'closed' as const } : o
-                                    )
-                                  );
+                                  // No need to manually update state - real-time listener will handle it!
+                                  console.log('Order marked as complete:', order.id);
                                 } catch (err) {
                                   console.error('Failed to complete order:', err);
                                   alert('Failed to complete order. Please try again.');
